@@ -1,0 +1,64 @@
+<!--
+    Requiere variable 'producto' con: nombre, numero_parte, precio, imagen_url, categoria_nombre
+-->
+
+<article class="product-card" data-numero-parte="{{ producto.numero_parte }}">
+    <a href="/producto/{{ producto.numero_parte }}" class="product-card__image-link">
+        <div class="product-card__image-wrapper">
+            <img
+                src="{{ producto.imagen_url or '/static/img/productos/thumbs/' + (producto.numero_parte | lower | replace(' ', '-')) + '.webp' }}"
+                data-src-large="{{ producto.imagen_url or '/static/img/productos/placeholder.svg' }}"
+                alt="{{ producto.nombre }}"
+                class="product-card__image"
+                width="300"
+                height="300"
+                loading="lazy"
+                decoding="async"
+                onerror="this.src='/static/img/productos/placeholder.svg'"
+            >
+            {% if producto.destacado is defined and producto.destacado %}
+            <span class="product-card__badge">Destacado</span>
+            {% endif %}
+            {% if producto.disponible is defined and not producto.disponible %}
+            <span class="product-card__badge product-card__badge--agotado">Agotado</span>
+            {% endif %}
+        </div>
+    </a>
+
+    <div class="product-card__info">
+        {% if producto.categoria_nombre is defined and producto.categoria_nombre %}
+        <span class="product-card__category">{{ producto.categoria_nombre }}</span>
+        {% endif %}
+
+        <a href="/producto/{{ producto.numero_parte }}" class="product-card__title-link">
+            <h3 class="product-card__title">{{ producto.nombre }}</h3>
+        </a>
+
+        <p class="product-card__part-number">
+            <i class="fa-solid fa-barcode"></i> {{ producto.numero_parte }}
+        </p>
+
+        <div class="product-card__bottom">
+            <p class="product-card__price">${{ "{:.2f}".format(producto.precio) }}</p>
+
+            {% if producto.disponible is not defined or producto.disponible %}
+            <button
+                class="product-card__add-btn"
+                onclick="agregarAlCarrito({
+                    numero_parte: '{{ producto.numero_parte }}',
+                    nombre: '{{ producto.nombre | replace("'", "\\'") }}',
+                    precio: {{ producto.precio }},
+                    imagen_url: '{{ producto.imagen_url or '/static/img/productos/placeholder.svg' }}'
+                })"
+                title="Añadir al carrito"
+                aria-label="Añadir {{ producto.nombre }} al carrito"
+            >
+                <i class="fa-solid fa-cart-plus"></i>
+                <span class="product-card__add-text">Añadir</span>
+            </button>
+            {% else %}
+            <span class="product-card__unavailable">Agotado</span>
+            {% endif %}
+        </div>
+    </div>
+</article>

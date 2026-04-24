@@ -1,0 +1,320 @@
+{% extends "dashboard/base.html" %}
+
+{% block header_title %}{% if producto %}Editar{% else %}Nuevo{% endif %} Producto{% endblock %}
+
+{% block header_actions %}
+<a href="/dashboard/productos" class="btn btn-outline">
+    <i class="fa-solid fa-arrow-left"></i>
+    Volver
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <form id="producto-form">
+        <input type="hidden" id="producto-id" value="{{ producto.id if producto else '' }}">
+        
+        <div class="form-section">
+            <h3 class="form-section-title">Información Principal</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="numero-parte">
+                        Número de Parte <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="numero-parte" 
+                        class="form-input" 
+                        required
+                        value="{{ producto.numero_parte if producto else '' }}"
+                        placeholder="Ej: XO-5W20-QSP"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="precio">
+                        Precio ($) <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="precio" 
+                        class="form-input" 
+                        required
+                        step="0.01"
+                        min="0"
+                        value="{{ producto.precio if producto else '' }}"
+                        placeholder="0.00"
+                    >
+                </div>
+                
+                <div class="form-group" style="grid-column: span 2;">
+                    <label class="form-label" for="nombre">
+                        Nombre del Producto <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="nombre" 
+                        class="form-input" 
+                        required
+                        value="{{ producto.nombre if producto else '' }}"
+                        placeholder="Nombre completo del producto"
+                    >
+                </div>
+                
+                <div class="form-group" style="grid-column: span 2;">
+                    <label class="form-label" for="descripcion">Descripción</label>
+                    <textarea 
+                        id="descripcion" 
+                        class="form-input" 
+                        rows="4"
+                        placeholder="Descripción detallada del producto..."
+                    >{{ producto.descripcion if producto else '' }}</textarea>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h3 class="form-section-title">Clasificación</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="categoria">Categoría</label>
+                    <select id="categoria" class="form-input form-select">
+                        <option value="">Sin categoría</option>
+                        {% for cat in categorias %}
+                        <option value="{{ cat.id }}" {% if producto and producto.categoria_id == cat.id %}selected{% endif %}>
+                            {{ cat.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Imagen del Producto</label>
+                    <div id="image-upload-area" class="image-upload" onclick="document.getElementById('imagen-input').click()">
+                        {% if producto and producto.imagen_url %}
+                        <div class="image-preview" id="image-preview-container">
+                            <img id="preview-img" src="{{ producto.imagen_url }}" alt="Preview">
+                            <button type="button" class="remove-btn" onclick="event.stopPropagation(); removeImage()">
+                                <i class="fa-solid fa-times"></i>
+                            </button>
+                        </div>
+                        {% else %}
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <p>Haz clic o arrastra una imagen aquí</p>
+                        {% endif %}
+                    </div>
+                    <input 
+                        type="text" 
+                        id="imagen-input" 
+                        class="form-input" 
+                        value="{{ producto.imagen_url if producto else '' }}"
+                        placeholder="/static/img/productos/..."
+                        onchange="previewImage()"
+                        style="margin-top: 12px;"
+                    >
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h3 class="form-section-title">Estado</h3>
+            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                <div class="form-checkbox-group">
+                    <input 
+                        type="checkbox" 
+                        id="disponible" 
+                        {% if producto and producto.disponible %}checked{% elif not producto %}checked{% endif %}
+                    >
+                    <label for="disponible">Producto disponible para venta</label>
+                </div>
+                
+                <div class="form-checkbox-group">
+                    <input 
+                        type="checkbox" 
+                        id="destacado"
+                        {% if producto and producto.destacado %}checked{% endif %}
+                    >
+                    <label for="destacado">Mostrar en productos destacados</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h3 class="form-section-title">Especificaciones Técnicas</h3>
+            <div id="especificaciones-list" class="dynamic-list">
+                {% if especificaciones %}
+                {% for espec in especificaciones %}
+                <div class="dynamic-item">
+                    <input type="text" class="form-input" placeholder="Aspecto" value="{{ espec.aspecto }}">
+                    <input type="text" class="form-input" placeholder="Detalle" value="{{ espec.detalle }}">
+                    <button type="button" class="remove-btn" onclick="this.parentElement.remove()">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" onclick="agregarEspecificacion()" style="margin-top: 12px;">
+                <i class="fa-solid fa-plus"></i> Agregar especificación
+            </button>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title">Compatibilidad Vehicular</h3>
+            <div id="compatibilidades-list" class="dynamic-list">
+                {% if compatibilidades %}
+                {% for comp in compatibilidades %}
+                <div class="dynamic-item">
+                    <input type="text" class="form-input" placeholder="Marca" value="{{ comp.marca }}" style="max-width: 120px;">
+                    <input type="text" class="form-input" placeholder="Modelo" value="{{ comp.modelo }}" style="max-width: 140px;">
+                    <input type="number" class="form-input" placeholder="Año inicio" value="{{ comp.anio_inicio }}" style="max-width: 90px;">
+                    <input type="number" class="form-input" placeholder="Año fin" value="{{ comp.anio_fin }}" style="max-width: 90px;">
+                    <button type="button" class="remove-btn" onclick="this.parentElement.remove()">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" onclick="agregarCompatibilidad()" style="margin-top: 12px;">
+                <i class="fa-solid fa-plus"></i> Agregar compatibilidad
+            </button>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-accent">
+                <i class="fa-solid fa-save"></i>
+                {% if producto %}Guardar Cambios{% else %}Crear Producto{% endif %}
+            </button>
+            <a href="/dashboard/productos" class="btn btn-outline">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('producto-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const productoId = document.getElementById('producto-id').value;
+    const imagenUrl = document.getElementById('imagen-input').value.trim();
+    
+    const data = {
+        numero_parte: document.getElementById('numero-parte').value.trim(),
+        nombre: document.getElementById('nombre').value.trim(),
+        descripcion: document.getElementById('descripcion').value.trim() || null,
+        precio: parseFloat(document.getElementById('precio').value),
+        disponible: document.getElementById('disponible').checked,
+        destacado: document.getElementById('destacado').checked,
+        categoria_id: parseInt(document.getElementById('categoria').value) || null,
+    };
+    
+    if (imagenUrl) {
+        data.imagen_url = imagenUrl;
+    }
+
+    const especificaciones = [];
+    document.querySelectorAll('#especificaciones-list .dynamic-item').forEach(item => {
+        const inputs = item.querySelectorAll('input');
+        if (inputs[0].value && inputs[1].value) {
+            especificaciones.push({
+                aspecto: inputs[0].value,
+                detalle: inputs[1].value
+            });
+        }
+    });
+    data.especificaciones = especificaciones;
+
+    const compatibilidades = [];
+    document.querySelectorAll('#compatibilidades-list .dynamic-item').forEach(item => {
+        const inputs = item.querySelectorAll('input');
+        if (inputs[0].value && inputs[1].value) {
+            compatibilidades.push({
+                marca: inputs[0].value,
+                modelo: inputs[1].value,
+                anio_inicio: parseInt(inputs[2].value) || null,
+                anio_fin: parseInt(inputs[3].value) || null
+            });
+        }
+    });
+    data.compatibilidades = compatibilidades;
+    
+    const url = productoId 
+        ? API_BASE + '/productos/' + productoId
+        : API_BASE + '/productos';
+    const method = productoId ? 'PUT' : 'POST';
+    
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || 'Error al guardar');
+        }
+        
+        showToast(productoId ? 'Producto actualizado correctamente' : 'Producto creado correctamente');
+        setTimeout(() => { window.location.href = '/dashboard/productos'; }, 1000);
+    } catch (e) {
+        showToast(e.message, 'error');
+    }
+});
+
+function previewImage() {
+    const url = document.getElementById('imagen-input').value;
+    const container = document.getElementById('image-upload-area');
+    
+    if (url) {
+        container.innerHTML = `
+            <div class="image-preview" id="image-preview-container">
+                <img id="preview-img" src="${url}" alt="Preview" onerror="this.src='/static/img/productos/placeholder.svg'">
+                <button type="button" class="remove-btn" onclick="event.stopPropagation(); removeImage()">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+        `;
+    }
+}
+
+function removeImage() {
+    const container = document.getElementById('image-upload-area');
+    document.getElementById('imagen-input').value = '';
+    container.innerHTML = `
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+        <p>Haz clic o arrastra una imagen aquí</p>
+    `;
+}
+
+function agregarEspecificacion() {
+    const div = document.createElement('div');
+    div.className = 'dynamic-item';
+    div.innerHTML = `
+        <input type="text" class="form-input" placeholder="Aspecto">
+        <input type="text" class="form-input" placeholder="Detalle">
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove()">
+            <i class="fa-solid fa-times"></i>
+        </button>
+    `;
+    document.getElementById('especificaciones-list').appendChild(div);
+}
+
+function agregarCompatibilidad() {
+    const div = document.createElement('div');
+    div.className = 'dynamic-item';
+    div.innerHTML = `
+        <input type="text" class="form-input" placeholder="Marca" style="max-width: 120px;">
+        <input type="text" class="form-input" placeholder="Modelo" style="max-width: 140px;">
+        <input type="number" class="form-input" placeholder="Año inicio" style="max-width: 90px;">
+        <input type="number" class="form-input" placeholder="Año fin" style="max-width: 90px;">
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove()">
+            <i class="fa-solid fa-times"></i>
+        </button>
+    `;
+    document.getElementById('compatibilidades-list').appendChild(div);
+}
+</script>
+{% endblock %}

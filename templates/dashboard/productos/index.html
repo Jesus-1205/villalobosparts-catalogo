@@ -1,0 +1,514 @@
+{% extends "dashboard/base.html" %}
+
+{% block header_title %}Gestión de Productos{% endblock %}
+
+{% block header_actions %}
+<a href="/dashboard/productos/nuevo" class="btn btn-accent">
+    <i class="fa-solid fa-plus"></i>
+    Nuevo Producto
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div id="mass-actions-bar" class="mass-actions-bar">
+        <span class="count"><i class="fa-solid fa-check-square"></i> <span id="selected-count">0</span> productos seleccionados</span>
+        <div class="actions">
+            <button type="button" class="btn" onclick="selectAllInPage()">
+                <i class="fa-solid fa-list"></i> Página actual
+            </button>
+            <button type="button" class="btn" onclick="selectAllProducts()">
+                <i class="fa-solid fa-layer-group"></i> Todos ({{ pagination.total }})
+            </button>
+            <button type="button" class="btn" onclick="deselectAll()">
+                <i class="fa-solid fa-square"></i> Ninguno
+            </button>
+            <button type="button" class="btn" onclick="massAction('disponible', true)">
+                <i class="fa-solid fa-check"></i> Disponibles
+            </button>
+            <button type="button" class="btn" onclick="massAction('disponible', false)">
+                <i class="fa-solid fa-xmark"></i> No disponibles
+            </button>
+            <button type="button" class="btn" onclick="massAction('destacado', true)">
+                <i class="fa-solid fa-star"></i> Destacados
+            </button>
+            <button type="button" class="btn" onclick="openBulkEditModal()">
+                <i class="fa-solid fa-pen-to-square"></i> Editar
+            </button>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input 
+                type="text" 
+                class="form-input" 
+                placeholder="Buscar por nombre o número de parte..." 
+                id="busqueda"
+                value="{{ filtros.busqueda }}"
+            >
+        </div>
+        
+        <div class="filter-group">
+            <select class="filter-select" id="filtro-categoria">
+                <option value="">Todas las categorías</option>
+                {% for cat in categorias %}
+                <option value="{{ cat.id }}" {% if filtros.categoria == cat.id %}selected{% endif %}>
+                    {{ cat.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+            
+            <select class="filter-select" id="filtro-disponible">
+                <option value="">Todos los estados</option>
+                <option value="true" {% if filtros.disponible == 'true' %}selected{% endif %}>Disponibles</option>
+                <option value="false" {% if filtros.disponible == 'false' %}selected{% endif %}>No disponibles</option>
+            </select>
+            
+            <select class="filter-select" id="filtro-destacado">
+                <option value="">Todos</option>
+                <option value="true" {% if filtros.destacado == 'true' %}selected{% endif %}>Solo destacados</option>
+                <option value="false" {% if filtros.destacado == 'false' %}selected{% endif %}>Solo no destacados</option>
+            </select>
+            
+            <select class="filter-select" id="ordenar">
+                <option value="id_desc" {% if filtros.ordenar == 'id_desc' %}selected{% endif %}>Más recientes</option>
+                <option value="id_asc" {% if filtros.ordenar == 'id_asc' %}selected{% endif %}>Más antiguos</option>
+                <option value="nombre_asc" {% if filtros.ordenar == 'nombre_asc' %}selected{% endif %}>Nombre A-Z</option>
+                <option value="nombre_desc" {% if filtros.ordenar == 'nombre_desc' %}selected{% endif %}>Nombre Z-A</option>
+                <option value="precio_asc" {% if filtros.ordenar == 'precio_asc' %}selected{% endif %}>Menor precio</option>
+                <option value="precio_desc" {% if filtros.ordenar == 'precio_desc' %}selected{% endif %}>Mayor precio</option>
+            </select>
+        </div>
+    </div>
+    
+    {% if items %}
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 50px;">
+                        <input type="checkbox" id="select-all" onchange="toggleAll(this)">
+                    </th>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Estado</th>
+                    <th>Destacado</th>
+                    <th style="width: 120px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td class="checkbox-cell">
+                        <input type="checkbox" class="row-checkbox" value="{{ item.id }}" onchange="updateSelection()">
+                    </td>
+                    <td>
+                        <div class="product-cell">
+                            <img 
+                                src="{{ item.imagen_url or '/static/img/productos/placeholder.svg' }}" 
+                                alt="{{ item.nombre }}"
+                                class="product-thumb"
+                                onerror="this.src='/static/img/productos/placeholder.svg'"
+                            >
+                            <div class="product-details">
+                                <span class="product-name">{{ item.nombre }}</span>
+                                <span class="product-sku">{{ item.numero_parte }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if item.categoria_nombre %}
+                        <span class="category-tag">{{ item.categoria_nombre }}</span>
+                        {% else %}
+                        <span style="color: var(--text-muted);">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="price">${{ "%.2f"|format(item.precio) }}</td>
+                    <td>
+                        {% if item.disponible %}
+                        <span class="status-badge available">Disponible</span>
+                        {% else %}
+                        <span class="status-badge unavailable">No disponible</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.destacado %}
+                        <span class="featured-badge"><i class="fa-solid fa-star"></i> Destacado</span>
+                        {% else %}
+                        <span style="color: var(--text-muted);">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <a href="/dashboard/productos/{{ item.id }}/editar" class="action-btn" title="Editar">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                            <button class="action-btn delete" title="Eliminar" onclick="eliminarProducto({{ item.id }}, '{{ item.numero_parte }}')">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="pagination-wrapper">
+        <div class="pagination-info">
+            Mostrando <strong>{{ (pagination.pagina - 1) * pagination.por_pagina + 1 }}</strong> - 
+            <strong>{{ [pagination.pagina * pagination.por_pagina, pagination.total]|min }}</strong> 
+            de <strong>{{ pagination.total }}</strong> productos
+        </div>
+        
+        {% if pagination.paginas_totales > 1 %}
+        <div class="pagination">
+            <a {% if pagination.tiene_anterior %}href="/dashboard/productos?pagina={{ pagination.pagina - 1 }}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}{% if filtros.categoria %}&categoria={{ filtros.categoria }}{% endif %}{% if filtros.disponible %}&disponible={{ filtros.disponible }}{% endif %}{% if filtros.destacado %}&destacado={{ filtros.destacado }}{% endif %}{% if filtros.ordenar %}&ordenar={{ filtros.ordenar }}{% endif %}"{% else %}href="#" class="disabled"{% endif %}
+               class="pagination-btn{% if not pagination.tiene_anterior %} disabled{% endif %}">
+                <i class="fa-solid fa-chevron-left"></i>
+            </a>
+            
+            {% for p in range(1, pagination.paginas_totales + 1) %}
+                {% if p >= pagination.pagina - 2 and p <= pagination.pagina + 2 %}
+                <a href="/dashboard/productos?pagina={{ p }}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}{% if filtros.categoria %}&categoria={{ filtros.categoria }}{% endif %}{% if filtros.disponible %}&disponible={{ filtros.disponible }}{% endif %}{% if filtros.destacado %}&destacado={{ filtros.destacado }}{% endif %}{% if filtros.ordenar %}&ordenar={{ filtros.ordenar }}{% endif %}"
+                   class="pagination-btn{% if p == pagination.pagina %} current{% endif %}">
+                    {{ p }}
+                </a>
+                {% endif %}
+            {% endfor %}
+            
+            <a {% if pagination.tiene_siguiente %}href="/dashboard/productos?pagina={{ pagination.pagina + 1 }}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}{% if filtros.categoria %}&categoria={{ filtros.categoria }}{% endif %}{% if filtros.disponible %}&disponible={{ filtros.disponible }}{% endif %}{% if filtros.destacado %}&destacado={{ filtros.destacado }}{% endif %}{% if filtros.ordenar %}&ordenar={{ filtros.ordenar }}{% endif %}"{% else %}href="#" class="disabled"{% endif %}
+               class="pagination-btn{% if not pagination.tiene_siguiente %} disabled{% endif %}">
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-box-open"></i>
+        <h3>No se encontraron productos</h3>
+        <p>No hay productos que coincidan con los filtros seleccionados.</p>
+        <a href="/dashboard/productos/nuevo" class="btn btn-accent" style="margin-top: 16px;">
+            <i class="fa-solid fa-plus"></i>
+            Crear primer producto
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div id="bulk-edit-modal" class="modal-overlay">
+    <div class="modal" style="max-width: 95vw; width: 95vw; max-height: 85vh;">
+        <div class="modal-header">
+            <h3 class="modal-title">Edición Masiva</h3>
+            <button class="modal-close" onclick="closeBulkEditModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
+            <div id="bulk-edit-loading" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 32px; margin-bottom: 16px;"></i>
+                <p>Cargando productos...</p>
+            </div>
+            <div id="bulk-edit-content" style="display: none;">
+                    <p style="margin-bottom: 12px; color: var(--text-secondary); font-size: 13px;">
+                        <i class="fa-solid fa-info-circle"></i>Máximo 200 productos por edición masiva
+                    </p>
+                <table class="table" style="font-size: 13px; min-width: unset;">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;">#</th>
+                            <th style="min-width: 100px;">N° Parte</th>
+                            <th style="min-width: 200px;">Nombre</th>
+                            <th style="width: 80px;">Precio</th>
+                            <th style="min-width: 120px;">Categoría</th>
+                            <th style="width: 60px;">Disp.</th>
+                            <th style="width: 60px;">Dest.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bulk-edit-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeBulkEditModal()">Cancelar</button>
+            <button type="button" class="btn btn-accent" onclick="saveBulkEdit()">
+                <i class="fa-solid fa-save"></i> Guardar cambios
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let searchTimeout;
+document.getElementById('busqueda').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('busqueda', this.value);
+        url.searchParams.set('pagina', 1);
+        window.location.href = url.toString();
+    }, 500);
+});
+
+document.getElementById('filtro-categoria').addEventListener('change', function() {
+    const url = new URL(window.location.href);
+    if (this.value) url.searchParams.set('categoria', this.value);
+    else url.searchParams.delete('categoria');
+    url.searchParams.set('pagina', 1);
+    window.location.href = url.toString();
+});
+
+document.getElementById('filtro-disponible').addEventListener('change', function() {
+    const url = new URL(window.location.href);
+    if (this.value) url.searchParams.set('disponible', this.value);
+    else url.searchParams.delete('disponible');
+    url.searchParams.set('pagina', 1);
+    window.location.href = url.toString();
+});
+
+document.getElementById('filtro-destacado').addEventListener('change', function() {
+    const url = new URL(window.location.href);
+    if (this.value) url.searchParams.set('destacado', this.value);
+    else url.searchParams.delete('destacado');
+    url.searchParams.set('pagina', 1);
+    window.location.href = url.toString();
+});
+
+document.getElementById('ordenar').addEventListener('change', function() {
+    const url = new URL(window.location.href);
+    url.searchParams.set('ordenar', this.value);
+    url.searchParams.set('pagina', 1);
+    window.location.href = url.toString();
+});
+
+async function eliminarProducto(id, nombre) {
+    if (confirm('¿Eliminar el producto "' + nombre + '"? Esta acción no se puede deshacer.')) {
+        try {
+            const res = await fetch(API_BASE + '/productos/' + id, { method: 'DELETE' });
+            if (!res.ok) throw new Error('Error al eliminar');
+            showToast('Producto eliminado correctamente');
+            setTimeout(() => window.location.reload(), 1000);
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+}
+
+const totalProductos = {{ pagination.total }};
+let allProductIds = [];
+
+async function selectAllProducts() {
+    try {
+        const res = await fetch(API_BASE + '/productos?pagina=1&por_pagina=' + totalProductos);
+        const data = await res.json();
+        allProductIds = data.items.map(p => p.id);
+        document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = true);
+        document.getElementById('select-all').checked = true;
+        updateSelection();
+        showToast(data.items.length + ' productos seleccionados');
+    } catch (e) {
+        showToast('Error: ' + e.message, 'error');
+    }
+}
+
+function selectAllInPage() {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = true);
+    document.getElementById('select-all').checked = true;
+    updateSelection();
+}
+
+function deselectAll() {
+    allProductIds = [];
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+    document.getElementById('select-all').checked = false;
+    updateSelection();
+    showToast('Selección limpiada');
+}
+
+function toggleAll(source) {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = source.checked);
+    updateSelection();
+}
+
+function updateSelection() {
+    const checked = document.querySelectorAll('.row-checkbox:checked');
+    const bar = document.getElementById('mass-actions-bar');
+    const countEl = document.getElementById('selected-count');
+    
+    let totalSelected;
+    if (allProductIds.length > 0) {
+        totalSelected = allProductIds.length;
+    } else {
+        totalSelected = checked.length;
+    }
+    
+    if (totalSelected > 0) {
+        bar.classList.add('visible');
+        countEl.textContent = totalSelected;
+    } else {
+        bar.classList.remove('visible');
+    }
+    
+    const allCheckboxes = document.querySelectorAll('.row-checkbox');
+    const allChecked = Array.from(allCheckboxes).every(cb => cb.checked);
+    document.getElementById('select-all').checked = allChecked;
+}
+
+async function massAction(field, value) {
+    let ids = [];
+    
+    if (allProductIds.length > 0) {
+        ids = allProductIds;
+    } else {
+        const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+        ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    }
+    
+    if (ids.length === 0) {
+        showToast('Selecciona al menos un producto', 'error');
+        return;
+    }
+    
+    let updated = 0;
+    for (const id of ids) {
+        try {
+            const res = await fetch(API_BASE + '/productos/' + id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ [field]: value })
+            });
+            if (res.ok) updated++;
+        } catch (e) {
+            console.error('Error:', e);
+        }
+    }
+    
+    showToast(updated + ' productos actualizados');
+    setTimeout(() => window.location.reload(), 1000);
+}
+
+let bulkProducts = [];
+const categoriasData = {{ categorias|tojson }};
+
+async function openBulkEditModal() {
+    let ids = [];
+    
+    if (allProductIds.length > 0) {
+        ids = allProductIds.slice(0, 200);
+    } else {
+        const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+        ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+        
+        if (ids.length === 0) {
+            showToast('Selecciona al menos un producto', 'error');
+            return;
+        }
+    }
+    
+    if (ids.length > 200) {
+        ids = ids.slice(0, 200);
+        showToast('Solo se editarán los primeros 200 productos', 'warning');
+    }
+    
+    document.getElementById('bulk-edit-modal').classList.add('active');
+    document.getElementById('bulk-edit-loading').style.display = 'block';
+    document.getElementById('bulk-edit-content').style.display = 'none';
+    
+    bulkProducts = [];
+    
+    for (let i = 0; i < ids.length; i += 10) {
+        const batch = ids.slice(i, i + 10);
+        await Promise.all(batch.map(async (id) => {
+            try {
+                const res = await fetch(API_BASE + '/productos/' + id);
+                if (res.ok) {
+                    const prod = await res.json();
+                    bulkProducts.push(prod);
+                }
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }));
+    }
+    
+    renderBulkEditTable();
+}
+
+function renderBulkEditTable() {
+    const tbody = document.getElementById('bulk-edit-tbody');
+    tbody.innerHTML = '';
+    
+    bulkProducts.forEach((prod, index) => {
+        let catsHtml = '<option value="">—</option>';
+        categoriasData.forEach(c => {
+            const selected = prod.categoria_id === c.id ? 'selected' : '';
+            catsHtml += `<option value="${c.id}" ${selected}>${c.nombre}</option>`;
+        });
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td><input type="text" class="form-input" value="${prod.numero_parte}" data-field="numero_parte" data-id="${prod.id}" style="width: 90px; padding: 8px;"></td>
+            <td><input type="text" class="form-input" value="${prod.nombre}" data-field="nombre" data-id="${prod.id}" style="width: 180px; padding: 8px;"></td>
+            <td><input type="number" class="form-input" value="${prod.precio}" data-field="precio" data-id="${prod.id}" step="0.01" style="width: 70px; padding: 8px;"></td>
+            <td><select class="form-input form-select" data-field="categoria_id" data-id="${prod.id}" style="width: 110px; padding: 8px;">${catsHtml}</select></td>
+            <td><input type="checkbox" ${prod.disponible ? 'checked' : ''} data-field="disponible" data-id="${prod.id}"></td>
+            <td><input type="checkbox" ${prod.destacado ? 'checked' : ''} data-field="destacado" data-id="${prod.id}"></td>
+        `;
+        tbody.appendChild(tr);
+    });
+    
+    document.getElementById('bulk-edit-loading').style.display = 'none';
+    document.getElementById('bulk-edit-content').style.display = 'block';
+}
+
+async function saveBulkEdit() {
+    let updated = 0;
+    
+    for (const prod of bulkProducts) {
+        const data = {};
+        document.querySelectorAll(`[data-id="${prod.id}"]`).forEach(el => {
+            const field = el.dataset.field;
+            if (el.type === 'checkbox') {
+                data[field] = el.checked;
+            } else if (el.value !== undefined) {
+                if (field === 'categoria_id') {
+                    data[field] = el.value ? parseInt(el.value) : null;
+                } else if (field === 'precio') {
+                    data[field] = parseFloat(el.value) || 0;
+                } else {
+                    data[field] = el.value;
+                }
+            }
+        });
+        
+        try {
+            const res = await fetch(API_BASE + '/productos/' + prod.id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) updated++;
+        } catch (e) {
+            console.error('Error:', e);
+        }
+    }
+    
+    showToast(updated + ' productos actualizados');
+    closeBulkEditModal();
+    setTimeout(() => window.location.reload(), 1000);
+}
+
+function closeBulkEditModal() {
+    document.getElementById('bulk-edit-modal').classList.remove('active');
+    bulkProducts = [];
+}
+</script>
+{% endblock %}

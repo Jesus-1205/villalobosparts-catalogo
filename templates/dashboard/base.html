@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} | {{ company_name }}</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Archivo+Black&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="/static/img/logo/logo.svg">
+    
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="dashboard-body">
+    <div class="dashboard-container">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <div class="brand-logo">
+                        <img src="/static/img/logo/logo.svg" alt="{{ company_name }}" onerror="this.style.display='none'">
+                    </div>
+                    <h2>{{ company_name|upper }}</h2>
+                </div>
+                <span class="badge">Admin</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Principal</div>
+                <a href="/dashboard" class="nav-item {% if request.url.path == '/dashboard' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Resumen</span>
+                </a>
+                <a href="/dashboard/productos" class="nav-item {% if '/dashboard/productos' in request.url.path %}active{% endif %}">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Productos</span>
+                </a>
+                <a href="/dashboard/categorias" class="nav-item {% if '/dashboard/categorias' in request.url.path %}active{% endif %}">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>Categorías</span>
+                </a>
+                <a href="/dashboard/pedidos" class="nav-item {% if '/dashboard/pedidos' in request.url.path %}active{% endif %}">
+                    <i class="fa-solid fa-cart-flatbed"></i>
+                    <span>Pedidos</span>
+                </a>
+                
+                <div class="nav-divider"></div>
+                
+                <div class="nav-section-title">Acceso rápido</div>
+                
+                <a href="/" class="nav-item" target="_blank">
+                    <i class="fa-solid fa-store"></i>
+                    <span>Ver Catálogo</span>
+                </a>
+            </nav>
+            
+            <div class="nav-footer">
+                <a href="/" class="nav-item">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>Abrir Tienda</span>
+                </a>
+                <a href="javascript:void(0)" onclick="dashboard.logout()" class="nav-item" style="color: var(--danger); margin-top: 10px;">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
+        </aside>
+        
+        <div class="main-wrapper">
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <div class="breadcrumb">
+                        <a href="/dashboard">Dashboard</a>
+                        <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+                        <span class="breadcrumb-current">{% block page_title %}Resumen{% endblock %}</span>
+                    </div>
+                </div>
+                <div class="header-title">
+                    <h1>{% block header_title %}{% endblock %}</h1>
+                </div>
+                <div class="header-actions">
+                    {% block header_actions %}{% endblock %}
+                </div>
+            </header>
+            
+            <div class="dashboard-content">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+    
+    <div id="toast-container" class="toast-container"></div>
+    
+    <script src="/static/js/dashboard.js" defer></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

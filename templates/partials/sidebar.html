@@ -1,0 +1,91 @@
+
+<div class="vp-sidebar" id="vp-sidebar">
+    <!-- Header del sidebar -->
+    <div class="vp-sidebar__header">
+        <a href="/" class="vp-sidebar__brand">
+            <img src="/static/img/logo/logo.svg" alt="{{ app_name }}" class="vp-sidebar__brand-img">
+            <span class="vp-sidebar__brand-name">{{ app_name }}</span>
+        </a>
+        <button class="vp-sidebar__collapse-btn" id="sidebar-collapse-btn" aria-label="Colapsar menú">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+    </div>
+
+    <!-- Búsqueda -->
+    <div class="vp-sidebar__search">
+        <form action="/catalogo" method="get" class="vp-sidebar__search-form">
+            <form action="/catalogo" method="get" class="vp-sidebar__search-form">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" name="busqueda" id="sidebar-search-input" placeholder="Buscar pieza..." autocomplete="off">
+            </form>
+            <div class="vp-sidebar__search-autocomplete" id="sidebar-search-autocomplete"></div>
+    </div>
+
+    <!-- Navegación principal -->
+    <nav class="vp-sidebar__nav">
+        <ul class="vp-sidebar__menu">
+            <!-- Inicio -->
+            <li class="vp-sidebar__item {% if request.url.path == '/' %}vp-sidebar__item--active{% endif %}">
+                <a href="/" class="vp-sidebar__link">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Inicio</span>
+                </a>
+            </li>
+
+            <!-- Catálogo -->
+            <li class="vp-sidebar__item {% if '/catalogo' in request.url.path %}vp-sidebar__item--active{% endif %}">
+                <a href="/catalogo" class="vp-sidebar__link">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Catálogo</span>
+                </a>
+            </li>
+
+            <!-- Categorías (dropdown) -->
+            <li class="vp-sidebar__item vp-sidebar__item--dropdown" id="sidebar-cat-dropdown">
+                <button class="vp-sidebar__link vp-sidebar__link--toggle" id="sidebar-cat-toggle">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>Categorías</span>
+                    <i class="fa-solid fa-chevron-down vp-sidebar__chevron"></i>
+                </button>
+                <ul class="vp-sidebar__submenu" id="sidebar-cat-submenu">
+                    <!-- Se llena dinámicamente con JS -->
+                </ul>
+            </li>
+
+            <!-- Separador -->
+            <li class="vp-sidebar__separator"></li>
+
+            <!-- Carrito -->
+            <li class="vp-sidebar__item {% if '/carrito' in request.url.path %}vp-sidebar__item--active{% endif %}">
+                <a href="/carrito" class="vp-sidebar__link">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span>Mi Carrito</span>
+                    <span class="vp-sidebar__badge" id="sidebar-cart-badge">0</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Footer del sidebar -->
+    <div class="vp-sidebar__footer">
+        <!-- WhatsApp -->
+        <a href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noopener" class="vp-sidebar__link vp-sidebar__link--whatsapp">
+            <i class="fa-brands fa-whatsapp"></i>
+            <span>Contactar Asesor</span>
+        </a>
+
+        <!-- Info de contacto -->
+        <div class="vp-sidebar__contact">
+            <div class="vp-sidebar__contact-icon">
+                <img src="/static/img/logo/logo.svg" alt="{{ app_name }}">
+            </div>
+            <div class="vp-sidebar__contact-info">
+                <span class="vp-sidebar__contact-name">{{ app_name }}</span>
+                <span class="vp-sidebar__contact-detail">Autopartes Motorcraft</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Overlay para mobile -->
+<div class="vp-sidebar-overlay" id="vp-sidebar-overlay"></div>

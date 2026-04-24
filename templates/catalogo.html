@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if categoria_activa is defined and categoria_activa %}
+    {{ categoria_activa.nombre }}
+{% else %}
+    Catálogo de Autopartes
+{% endif %}
+{% endblock %}
+
+{% block meta_description %}
+{% if categoria_activa is defined and categoria_activa %}
+    {{ categoria_activa.descripcion or 'Encuentra autopartes ' + categoria_activa.nombre + ' Motorcraft originales.' }}
+{% else %}
+    Catálogo completo de autopartes Motorcraft originales. Más de 600 productos para vehículos Ford.
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/catalogo.css">
+{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <div class="container">
+        <a href="/" class="breadcrumb__link">Inicio</a>
+        <i class="fa-solid fa-chevron-right breadcrumb__separator"></i>
+        {% if categoria_activa is defined and categoria_activa %}
+            <a href="/catalogo" class="breadcrumb__link">Catálogo</a>
+            <i class="fa-solid fa-chevron-right breadcrumb__separator"></i>
+            <span class="breadcrumb__current">{{ categoria_activa.nombre }}</span>
+        {% else %}
+            <span class="breadcrumb__current">Catálogo</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="catalogo-page">
+    <div class="container">
+
+        <!-- Título de la página -->
+        <div class="catalogo-page__header">
+            <h1 class="catalogo-page__title">
+                {% if categoria_activa is defined and categoria_activa %}
+                    {{ categoria_activa.nombre }}
+                {% else %}
+                    Catálogo de Autopartes
+                {% endif %}
+            </h1>
+            {% if categoria_activa is defined and categoria_activa and categoria_activa.descripcion %}
+                <p class="catalogo-page__description">{{ categoria_activa.descripcion }}</p>
+            {% endif %}
+        </div>
+
+        <div class="catalogo-layout">
+
+            
+            <aside class="filters-sidebar" id="filters-sidebar">
+                <div class="filters-sidebar__header">
+                    <h2 class="filters-sidebar__title">
+                        <i class="fa-solid fa-sliders"></i> Filtros
+                    </h2>
+                    <button class="filters-sidebar__close" id="filters-close" aria-label="Cerrar filtros">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Filtros activos / Tags -->
+                <div class="filters-active" id="filters-active" style="display: none;">
+                    <div class="filters-active__header">
+                        <span class="filters-active__label">Filtros aplicados</span>
+                        <button class="filters-active__clear" id="filters-clear-all">Limpiar todos</button>
+                    </div>
+                    <div class="filters-active__tags" id="filters-active-tags">
+                        <!-- Tags dinámicos -->
+                    </div>
+                </div>
+
+                <div class="filters-sidebar__content">
+
+                    <!-- Búsqueda (Acordeón) -->
+                    <div class="filter-group" data-filter-group="busqueda">
+                        <button class="filter-group__header" aria-expanded="true">
+                            <h3 class="filter-group__title">Búsqueda</h3>
+                            <i class="fa-solid fa-chevron-down filter-group__chevron"></i>
+                        </button>
+                        <div class="filter-group__body filter-group__body--open">
+                            <div class="filter-group__content">
+                                <div class="filter-search-wrapper">
+                                    <i class="fa-solid fa-magnifying-glass filter-search-wrapper__icon"></i>
+                                    <input
+                                        type="text"
+                                        id="filter-search"
+                                        class="filter-input filter-input--search"
+                                        placeholder="Nombre, Número de parte..."
+                                    >
+                                    <button class="filter-search-wrapper__clear" id="search-clear" style="display:none;" aria-label="Limpiar búsqueda">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Categorías (Acordeón) -->
+                    <div class="filter-group" data-filter-group="categoria">
+                        <button class="filter-group__header" aria-expanded="false">
+                            <h3 class="filter-group__title">Categoría</h3>
+                            <i class="fa-solid fa-chevron-down filter-group__chevron"></i>
+                        </button>
+                        <div class="filter-group__body">
+                            <div class="filter-group__content">
+                                <div class="filter-search-wrapper filter-search-wrapper--sm">
+                                    <i class="fa-solid fa-magnifying-glass filter-search-wrapper__icon"></i>
+                                    <input
+                                        type="text"
+                                        id="filter-categoria-search"
+                                        class="filter-input filter-input--search filter-input--sm"
+                                        placeholder="Buscar categoría..."
+                                    >
+                                </div>
+                                <div class="filter-group__scroll" id="categorias-list">
+                                    {% for cat in categorias %}
+                                    <label class="filter-checkbox">
+                                        <input
+                                            type="checkbox"
+                                            name="categoria"
+                                            value="{{ cat.slug }}"
+                                            {% if categoria_activa is defined and categoria_activa and categoria_activa.slug == cat.slug %}checked{% endif %}
+                                        >
+                                        <span class="filter-checkbox__mark">
+                                            <svg class="filter-checkbox__check-icon" viewBox="0 0 12 10" fill="none">
+                                                <path d="M1 5L4.5 8.5L11 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </span>
+                                        <span class="filter-checkbox__label">{{ cat.nombre }}</span>
+                                        <span class="filter-checkbox__count">({{ cat.total_productos }})</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Rango de Precio (Acordeón) -->
+                    <div class="filter-group" data-filter-group="precio">
+                        <button class="filter-group__header" aria-expanded="true">
+                            <h3 class="filter-group__title">Precio</h3>
+                            <i class="fa-solid fa-chevron-down filter-group__chevron"></i>
+                        </button>
+                        <div class="filter-group__body filter-group__body--open">
+                            <div class="filter-group__content">
+                                <div class="price-range">
+                                    <div class="price-range__inputs">
+                                        <div class="price-range__field">
+                                            <span class="price-range__currency">$</span>
+                                            <input
+                                                type="number"
+                                                id="filter-precio-min"
+                                                class="filter-input filter-input--price"
+                                                placeholder="Mínimo"
+                                                min="0"
+                                            >
+                                        </div>
+                                        <span class="price-range__separator">—</span>
+                                        <div class="price-range__field">
+                                            <span class="price-range__currency">$</span>
+                                            <input
+                                                type="number"
+                                                id="filter-precio-max"
+                                                class="filter-input filter-input--price"
+                                                placeholder="Máximo"
+                                                min="0"
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Botón restablecer (fijo abajo en móvil) -->
+                <div class="filters-sidebar__footer">
+                    <button class="btn btn--ghost btn--block" id="filters-reset">
+                        <i class="fa-solid fa-rotate-left"></i> Restablecer filtros
+                    </button>
+                </div>
+
+            </aside>
+            <div class="catalogo-content">
+
+                <!-- Barra superior (resultados + ordenamiento) -->
+                <div class="catalogo-toolbar">
+                    <div class="catalogo-toolbar__left">
+                        <button class="catalogo-toolbar__filter-btn" id="filters-toggle">
+                            <i class="fa-solid fa-sliders"></i>
+                            <span>Filtros</span>
+                            <span class="catalogo-toolbar__filter-badge" id="filter-badge" style="display:none;">0</span>
+                        </button>
+                        <p class="catalogo-toolbar__results" id="results-count">
+                            Cargando productos...
+                        </p>
+                    </div>
+                    <div class="catalogo-toolbar__right">
+                        <label class="catalogo-toolbar__sort">
+                            <span class="catalogo-toolbar__sort-label">Ordenar:</span>
+                            <select id="sort-select" class="catalogo-toolbar__sort-select">
+                                <option value="relevancia">Relevancia</option>
+                                <option value="precio_asc">Precio: Menor a Mayor</option>
+                                <option value="precio_desc">Precio: Mayor a Menor</option>
+                                <option value="nombre_asc">Nombre: A - Z</option>
+                                <option value="nombre_desc">Nombre: Z - A</option>
+                                <option value="recientes">Más Recientes</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Grid de productos -->
+                <div class="products-grid" id="products-grid">
+                    <!-- Se llena dinámicamente con JavaScript -->
+                </div>
+
+                <!-- Skeleton loading -->
+                <div class="products-grid products-grid--skeleton" id="products-skeleton">
+                    {% for i in range(8) %}
+                    <div class="skeleton-card">
+                        <div class="skeleton-card__image skeleton-pulse"></div>
+                        <div class="skeleton-card__info">
+                            <div class="skeleton-card__category skeleton-pulse"></div>
+                            <div class="skeleton-card__title skeleton-pulse"></div>
+                            <div class="skeleton-card__part skeleton-pulse"></div>
+                            <div class="skeleton-card__bottom">
+                                <div class="skeleton-card__price skeleton-pulse"></div>
+                                <div class="skeleton-card__btn skeleton-pulse"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Estado vacío -->
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <div class="empty-state__icon">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <h3 class="empty-state__title">No se encontraron productos</h3>
+                    <p class="empty-state__text">
+                        Intenta modificar los filtros o realiza una búsqueda diferente.
+                    </p>
+                    <button class="btn btn--primary" onclick="resetearFiltros()">
+                        <i class="fa-solid fa-rotate-left"></i> Restablecer Filtros
+                    </button>
+                </div>
+
+                <!-- Paginación -->
+                <div class="pagination" id="pagination">
+                    <!-- Se llena dinámicamente con JavaScript -->
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Overlay para filtros móvil -->
+        <div class="filters-overlay" id="filters-overlay"></div>
+    </div>
+</div>
+
+<!-- Pasar datos al JavaScript -->
+<script>
+    const CATALOGO_CONFIG = {
+        categoriaActiva: {{ (categoria_activa | tojson) if categoria_activa is defined and categoria_activa else 'null' }},
+        busquedaInicial: new URLSearchParams(window.location.search).get('busqueda') || ''
+    };
+</script>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/catalogo.js"></script>
+{% endblock %}

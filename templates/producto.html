@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}{{ producto.nombre }} - {{ producto.numero_parte }}{% endblock %}
+{% block meta_description %}{{ producto.descripcion[:160] if producto.descripcion else producto.nombre + ' - Autoparte Motorcraft original para vehículos Ford.' }}{% endblock %}
+{% block meta_keywords %}{{ producto.numero_parte }}, {{ producto.nombre }}, autoparte motorcraft{% if producto.categoria %}, {{ producto.categoria.nombre }}{% endif %}, ford{% endblock %}
+
+{% block og_type %}product{% endblock %}
+{% block og_title %}{{ producto.nombre }} | {{ app_name }}{% endblock %}
+{% block og_description %}{{ producto.descripcion[:200] if producto.descripcion else producto.nombre + ' — Autoparte Motorcraft original.' }}{% endblock %}
+{% block og_image %}{{ base_url }}{{ producto.imagen_url or '/static/img/logo/logo.svg' }}{% endblock %}
+
+{% block twitter_title %}{{ producto.nombre }} | {{ app_name }}{% endblock %}
+{% block twitter_description %}{{ producto.descripcion[:160] if producto.descripcion else producto.nombre + ' — Autoparte Motorcraft original.' }}{% endblock %}
+
+{% block canonical_url %}{{ base_url }}/producto/{{ producto.numero_parte }}{% endblock %}
+
+
+{% block schema_org %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "{{ producto.nombre | replace('"', '\\"') }}",
+    "description": "{{ (producto.descripcion or producto.nombre) | replace('"', '\\"') | truncate(500, True, '') }}",
+    "sku": "{{ producto.numero_parte }}",
+    "mpn": "{{ producto.numero_parte }}",
+    "image": [
+        "{{ base_url }}{{ producto.imagen_url or '/static/img/logo/logo.svg' }}"
+    ],
+    "brand": {
+        "@type": "Brand",
+        "name": "Motorcraft"
+    },
+    "manufacturer": {
+        "@type": "Organization",
+        "name": "Motorcraft / Ford Motor Company"
+    },
+    {% if producto.categoria %}
+    "category": "{{ producto.categoria.nombre }}",
+    {% endif %}
+        "offers": {
+            "@type": "Offer",
+            "url": "{{ base_url }}/producto/{{ producto.numero_parte }}",
+            "priceCurrency": "USD",
+            "price": "{{ producto.precio }}",
+            "priceValidUntil": "{{ (now().year + 1) ~ '-12-31' if now is defined else '2027-12-31' }}",
+            "availability": "{% if producto.disponible %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+            "seller": {
+                "@type": "AutoPartsStore",
+                "name": "{{ app_name }}",
+                "url": "{{ base_url }}"
+            },
+            "itemCondition": "https://schema.org/NewCondition"
+        }
+</script>
+
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Inicio",   "item": "{{ base_url }}/" },
+        { "@type": "ListItem", "position": 2, "name": "Catálogo", "item": "{{ base_url }}/catalogo" }{% if producto.categoria %},
+        { "@type": "ListItem", "position": 3, "name": "{{ producto.categoria.nombre }}", "item": "{{ base_url }}/categoria/{{ producto.categoria.slug }}" },
+        { "@type": "ListItem", "position": 4, "name": "{{ producto.numero_parte }}", "item": "{{ base_url }}/producto/{{ producto.numero_parte }}" }
+        {% else %},
+        { "@type": "ListItem", "position": 3, "name": "{{ producto.numero_parte }}", "item": "{{ base_url }}/producto/{{ producto.numero_parte }}" }
+        {% endif %}
+    ]
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/producto.css">
+{% endblock %}
+
+{% block content %}
+
+
+
+<div class="breadcrumb">
+    <div class="container">
+        <a href="/" class="breadcrumb__link">Inicio</a>
+        <i class="fa-solid fa-chevron-right breadcrumb__separator"></i>
+        <a href="/catalogo" class="breadcrumb__link">Catálogo</a>
+        {% if producto.categoria %}
+        <i class="fa-solid fa-chevron-right breadcrumb__separator"></i>
+        <a href="/categoria/{{ producto.categoria.slug }}" class="breadcrumb__link">
+            {{ producto.categoria.nombre }}
+        </a>
+        {% endif %}
+        <i class="fa-solid fa-chevron-right breadcrumb__separator"></i>
+        <span class="breadcrumb__current">{{ producto.numero_parte }}</span>
+    </div>
+</div>
+
+
+<div class="producto-page">
+    <div class="container">
+
+        
+        <div class="producto-main">
+
+            
+            <div class="producto-image">
+                <div class="producto-image__wrapper" id="product-image-zoom">
+                    <img
+                        src="{{ producto.imagen_url or '/static/img/productos/placeholder.svg' }}"
+                        alt="{{ producto.nombre }}"
+                        class="producto-image__img"
+                        id="product-main-image"
+                        width="800"
+                        height="800"
+                        loading="eager"
+                        decoding="async"
+                        fetchpriority="high"
+                        onerror="this.src='/static/img/productos/placeholder.svg'"
+                    >
+                    {% if producto.destacado %}
+                    <span class="product-card__badge">Destacado</span>
+                    {% endif %}
+            </div>
+        </div>
+
+            
+            <div class="producto-info">
+                {% if producto.categoria %}
+                <a href="/categoria/{{ producto.categoria.slug }}" class="producto-info__category">
+                    {{ producto.categoria.nombre }}
+                </a>
+                {% endif %}
+
+                <h1 class="producto-info__title">{{ producto.nombre }}</h1>
+
+                <div class="producto-info__part-number">
+                    <i class="fa-solid fa-barcode"></i>
+                    <span>Número de parte: <strong>{{ producto.numero_parte }}</strong></span>
+                </div>
+
+                
+                <div class="producto-info__availability {% if producto.disponible %}producto-info__availability--available{% else %}producto-info__availability--unavailable{% endif %}">
+                    {% if producto.disponible %}
+                    <i class="fa-solid fa-circle-check"></i> En stock - Disponible
+                    {% else %}
+                    <i class="fa-solid fa-circle-xmark"></i> Agotado temporalmente
+                    {% endif %}
+                </div>
+
+                
+                <div class="producto-info__price-box">
+                    <span class="producto-info__price">${{ "{:.2f}".format(producto.precio) }}</span>
+                    <span class="producto-info__price-note">Precio unitario (USD)</span>
+                </div>
+
+                
+                {% if producto.descripcion %}
+                <div class="producto-info__description">
+                    <p>{{ producto.descripcion }}</p>
+                </div>
+                {% endif %}
+
+                
+                {% if producto.disponible %}
+                <div class="producto-info__actions">
+                    <div class="quantity-selector">
+                        <button class="quantity-selector__btn" id="qty-decrease" aria-label="Disminuir cantidad">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+                        <input
+                            type="number"
+                            id="product-quantity"
+                            class="quantity-selector__input"
+                            value="1"
+                            min="1"
+                            max="99"
+                        >
+                        <button class="quantity-selector__btn" id="qty-increase" aria-label="Aumentar cantidad">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+
+                    <button class="btn btn--primary btn--lg producto-info__add-btn" id="add-to-cart-btn">
+                        <i class="fa-solid fa-cart-plus"></i> Añadir al Carrito
+                    </button>
+                </div>
+
+                <a
+                    href="https://wa.me/{{ whatsapp_number }}?text=Hola%2C%20me%20interesa%20el%20producto%3A%20{{ producto.nombre | urlencode }}%20({{ producto.numero_parte }})%20%24{{ producto.precio }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="btn btn--whatsapp btn--block producto-info__wa-btn"
+                >
+                    <i class="fa-brands fa-whatsapp"></i> Consultar por WhatsApp
+                </a>
+                {% else %}
+                <a
+                    href="https://wa.me/{{ whatsapp_number }}?text=Hola%2C%20quiero%20saber%20cu%C3%A1ndo%20estar%C3%A1%20disponible%3A%20{{ producto.nombre | urlencode }}%20({{ producto.numero_parte }})"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="btn btn--whatsapp btn--lg btn--block"
+                >
+                    <i class="fa-brands fa-whatsapp"></i> Preguntar Disponibilidad
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        
+        <div class="producto-tabs">
+            <div class="producto-tabs__nav">
+                <button class="producto-tabs__tab producto-tabs__tab--active" data-tab="specs">
+                    <i class="fa-solid fa-list-check"></i> Especificaciones
+                </button>
+            </div>
+
+            
+            <div class="producto-tabs__content producto-tabs__content--active" id="tab-specs">
+                {% if producto.especificaciones | length > 0 %}
+                <table class="specs-table">
+                    <thead>
+                        <tr>
+                            <th>Aspecto</th>
+                            <th>Detalle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for espec in producto.especificaciones %}
+                        <tr>
+                            <td class="specs-table__aspect">{{ espec.aspecto }}</td>
+                            <td>{{ espec.detalle }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="producto-tabs__empty">No hay especificaciones disponibles para este producto.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        
+        {% if relacionados | length > 0 %}
+        <section class="related-section">
+            <h2 class="section__title">Productos Relacionados</h2>
+            <div class="products-grid products-grid--4">
+                {% for prod in relacionados %}
+                <article class="product-card">
+                    <a href="/producto/{{ prod.numero_parte }}" class="product-card__image-link">
+                        <div class="product-card__image-wrapper">
+                            <img
+                                src="{{ prod.imagen_url or '/static/img/productos/placeholder.svg' }}"
+                                alt="{{ prod.nombre }}"
+                                class="product-card__image"
+                                width="300"
+                                height="300"
+                                loading="lazy"
+                                decoding="async"
+                                onerror="this.src='/static/img/productos/placeholder.svg'"
+                            >
+                        </div>
+                    </a>
+                    <div class="product-card__info">
+                        <a href="/producto/{{ prod.numero_parte }}" class="product-card__title-link">
+                            <h3 class="product-card__title">{{ prod.nombre }}</h3>
+                        </a>
+                        <p class="product-card__part-number">
+                            <i class="fa-solid fa-barcode"></i> {{ prod.numero_parte }}
+                        </p>
+                        <div class="product-card__bottom">
+                            <p class="product-card__price">${{ "{:.2f}".format(prod.precio) }}</p>
+                            <button
+                                class="product-card__add-btn"
+                                onclick="agregarAlCarrito({
+                                    numero_parte: '{{ prod.numero_parte }}',
+                                    nombre: '{{ prod.nombre | tojson }}',
+                                    precio: {{ prod.precio }},
+                                    imagen_url: '{{ prod.imagen_url or '/static/img/productos/placeholder.svg' }}'
+                                })"
+                                title="Añadir al carrito"
+                            >
+                                <i class="fa-solid fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+    </div>
+</div>
+
+<!-- Datos del producto para JavaScript -->
+<script>
+    const PRODUCTO_DATA = {
+        id: {{ producto.id }},
+        nombre: "{{ producto.nombre | replace('"', '\\"') }}",
+        numero_parte: "{{ producto.numero_parte }}",
+        precio: {{ producto.precio }},
+        imagen_url: "{{ producto.imagen_url or '/static/img/productos/placeholder.svg' }}",
+        disponible: {{ 'true' if producto.disponible else 'false' }}
+    };
+</script>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/producto.js" defer></script>
+{% endblock %}

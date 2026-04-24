@@ -1,0 +1,117 @@
+
+
+<footer class="footer">
+    <div class="footer__main">
+        <div class="container">
+            <div class="footer__grid">
+
+                <!-- Columna 1: Sobre la empresa -->
+                <div class="footer__col">
+                    <div class="footer__brand">
+                        <img src="/static/img/logo/logo-white.png" alt="{{ app_name }}" class="footer__logo">
+                        <h3 class="footer__title">{{ app_name }}</h3>
+                    </div>
+                    <p class="footer__text">
+                        Tu proveedor de confianza en autopartes Motorcraft originales para vehículos Ford y Lincoln.
+                        Calidad de equipo original con la mejor asesoría.
+                    </p>
+                    <div class="footer__social">
+                        <a href="#" class="footer__social-link" aria-label="Facebook" target="_blank" rel="noopener">
+                            <i class="fa-brands fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="footer__social-link" aria-label="Instagram" target="_blank" rel="noopener">
+                            <i class="fa-brands fa-instagram"></i>
+                        </a>
+                        <a href="#" class="footer__social-link" aria-label="TikTok" target="_blank" rel="noopener">
+                            <i class="fa-brands fa-tiktok"></i>
+                        </a>
+                        <a href="https://wa.me/{{ whatsapp_number }}" class="footer__social-link footer__social-link--whatsapp" aria-label="WhatsApp" target="_blank" rel="noopener">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Columna 2: Enlaces rápidos -->
+                <div class="footer__col">
+                    <h4 class="footer__heading">Explorar</h4>
+                    <ul class="footer__links">
+                        <li><a href="/" class="footer__link"><i class="fa-solid fa-chevron-right"></i> Inicio</a></li>
+                        <li><a href="/catalogo" class="footer__link"><i class="fa-solid fa-chevron-right"></i> Catálogo</a></li>
+                        <li><a href="/catalogo" class="footer__link"><i class="fa-solid fa-chevron-right"></i> Todos los productos</a></li>
+                        <li><a href="/carrito" class="footer__link"><i class="fa-solid fa-chevron-right"></i> Carrito</a></li>
+                    </ul>
+                </div>
+
+                <!-- Columna 4: Contacto -->
+                <div class="footer__col">
+                    <h4 class="footer__heading">Contacto</h4>
+                    <ul class="footer__contact">
+                        <li class="footer__contact-item">
+                            <i class="fa-brands fa-whatsapp"></i>
+                            <div>
+                                <strong>WhatsApp</strong><br>
+                                <a href="https://wa.me/{{ whatsapp_number }}">{{ whatsapp_number }}</a>
+                            </div>
+                        </li>
+                        <li class="footer__contact-item">
+                            <i class="fa-solid fa-phone"></i>
+                            <div>
+                                <strong>Teléfono</strong><br>
+                                <a href="tel:{{ whatsapp_number }}">{{ whatsapp_number }}</a>
+                            </div>
+                        </li>
+                        <li class="footer__contact-item">
+                            <i class="fa-solid fa-envelope"></i>
+                            <div>
+                                <strong>Email</strong><br>
+                                <a href="mailto:{{ company_email }}">{{ company_email }}</a>
+                            </div>
+                        </li>
+                        <li class="footer__contact-item">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <div>
+                                <strong>Ubicación</strong><br>
+                                <span>{{ company_location }}</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de confianza -->
+    <div class="footer__trust">
+        <div class="container">
+            <div class="footer__trust-items">
+                <div class="footer__trust-item">
+                    <i class="fa-solid fa-award"></i>
+                    <span>Productos 100% Originales</span>
+                </div>
+                <div class="footer__trust-item">
+                    <i class="fa-solid fa-truck-fast"></i>
+                    <span>Envío a Toda Venezuela</span>
+                </div>
+                <div class="footer__trust-item">
+                    <i class="fa-solid fa-headset"></i>
+                    <span>Asesoría Personalizada</span>
+                </div>
+                <div class="footer__trust-item">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Compra Segura</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Copyright -->
+    <div class="footer__bottom">
+        <div class="container footer__bottom-inner">
+            <p>&copy; 2026 {{ app_name }}. Todos los derechos reservados.</p>
+            <p class="footer__disclaimer">
+                Las marcas Motorcraft® y Ford® son propiedad de Ford Motor Company.
+            </p>
+        </div>
+    </div>
+</footer>

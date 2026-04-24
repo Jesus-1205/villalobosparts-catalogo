@@ -1,0 +1,517 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Carrito{% endblock %}
+{% block meta_description %}Revisa tu carrito de compras y completa tu pedido con todos los datos necesarios.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/carrito.css">
+{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <div class="container">
+        <a href="/" class="breadcrumb__link">Inicio</a>
+        <i class="fa-solid fa-chevron-right breadcrumb__separator"></i>
+        <span class="breadcrumb__current">Mi Carrito</span>
+    </div>
+</div>
+
+<div class="carrito-page">
+    <div class="container">
+
+        <h1 class="carrito-page__title">
+            <i class="fa-solid fa-cart-shopping"></i> Mi Carrito
+        </h1>
+
+        
+        <div class="carrito-layout" id="carrito-layout">
+
+            <!-- Lista de productos -->
+            <div class="carrito-items" id="carrito-items">
+                <!-- Se llena dinámicamente con JavaScript -->
+            </div>
+
+            <!-- Resumen del pedido -->
+            <div class="carrito-summary" id="carrito-summary">
+                <div class="carrito-summary__box">
+                    <h2 class="carrito-summary__title">Resumen del Pedido</h2>
+
+                    <div class="carrito-summary__details">
+                        <div class="carrito-summary__row">
+                            <span>Productos:</span>
+                            <span id="summary-items-count">0</span>
+                        </div>
+                        <div class="carrito-summary__row">
+                            <span>Unidades totales:</span>
+                            <span id="summary-units-count">0</span>
+                        </div>
+                        <div class="carrito-summary__divider"></div>
+                        <div class="carrito-summary__row carrito-summary__row--total">
+                            <span>Total Estimado:</span>
+                            <span id="summary-total">$0.00</span>
+                        </div>
+                    </div>
+
+                    <p class="carrito-summary__note">
+                        <i class="fa-solid fa-circle-info"></i>
+                        El total es estimado. El asesor te confirmará disponibilidad, costos de envío y total final.
+                    </p>
+
+                    <!-- Botón principal: Realizar Compra -->
+                    <button class="btn btn--primary btn--lg btn--block carrito-summary__checkout-btn" id="checkout-btn">
+                        <i class="fa-solid fa-lock"></i> Realizar Compra
+                    </button>
+
+                    <a href="/catalogo" class="btn btn--outline btn--block carrito-summary__continue">
+                        <i class="fa-solid fa-arrow-left"></i> Seguir Comprando
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="carrito-empty" id="carrito-empty" style="display: none;">
+            <div class="carrito-empty__icon">
+                <i class="fa-solid fa-cart-shopping"></i>
+            </div>
+            <h2 class="carrito-empty__title">Tu carrito está vacío</h2>
+            <p class="carrito-empty__text">
+                Aún no has agregado productos a tu carrito.
+                Explora nuestro catálogo y encuentra las autopartes que necesitas.
+            </p>
+            <div class="carrito-empty__actions">
+                <a href="/catalogo" class="btn btn--primary btn--lg">
+                    <i class="fa-solid fa-boxes-stacked"></i> Explorar Catálogo
+                </a>
+                <a href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noopener" class="btn btn--whatsapp btn--lg">
+                    <i class="fa-brands fa-whatsapp"></i> Contactar Asesor
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<div class="loading-overlay" id="loading-overlay" style="display: none;">
+    <div class="loading-modal">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Enviando pedido...</p>
+    </div>
+</div>
+
+
+<div class="checkout-overlay" id="checkout-overlay">
+    <div class="checkout-modal" id="checkout-modal">
+        <div class="checkout-modal__header">
+            <h2 class="checkout-modal__title">
+                <i class="fa-solid fa-credit-card"></i> Finalizar Compra
+            </h2>
+            <button class="checkout-modal__close" id="checkout-close" aria-label="Cerrar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="checkout-modal__body">
+            <!-- Steps indicator -->
+            <div class="checkout-steps">
+                <div class="checkout-steps__step checkout-steps__step--active" data-step="1">
+                    <span class="checkout-steps__number">1</span>
+                    <span class="checkout-steps__label">Datos</span>
+                </div>
+                <div class="checkout-steps__line"></div>
+                <div class="checkout-steps__step" data-step="2">
+                    <span class="checkout-steps__number">2</span>
+                    <span class="checkout-steps__label">Confirmar</span>
+                </div>
+            </div>
+
+            <!-- Step 1: Datos personales -->
+            <form id="checkout-form" class="checkout-form">
+                <div class="checkout-form__section" id="checkout-step-1">
+                    <h3 class="checkout-form__section-title">
+                        <i class="fa-solid fa-user"></i> Información Personal
+                    </h3>
+
+                    <div class="checkout-form__row">
+                        <div class="checkout-form__col">
+                            <label for="checkout-nombre" class="checkout-form__label">Nombre *</label>
+                            <input
+                                type="text"
+                                id="checkout-nombre"
+                                class="checkout-form__input"
+                                placeholder="Tu nombre"
+                                required
+                            >
+                        </div>
+                        <div class="checkout-form__col">
+                            <label for="checkout-apellido" class="checkout-form__label">Apellido *</label>
+                            <input
+                                type="text"
+                                id="checkout-apellido"
+                                class="checkout-form__input"
+                                placeholder="Tu apellido"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="checkout-form__row">
+                        <div class="checkout-form__col">
+                            <label class="checkout-form__label">Cédula *</label>
+                            <div class="checkout-form__input-group">
+                                <select id="checkout-cedula-tipo" class="checkout-form__input checkout-form__input--tipo" required>
+                                    <option value="V" selected>V</option>
+                                    <option value="J">J</option>
+                                    <option value="E">E</option>
+                                    <option value="G">G</option>
+                                </select>
+                                <input
+                                    type="text"
+                                    id="checkout-cedula-num"
+                                    class="checkout-form__input"
+                                    placeholder="Ej: 12345678"
+                                    maxlength="9"
+                                    pattern="\d{7,9}"
+                                    required
+                                >
+                            </div>
+                        </div>
+                        <div class="checkout-form__col">
+                            <label class="checkout-form__label">Número de Contacto *</label>
+                            <div class="checkout-form__input-group">
+                                <input
+                                    type="text"
+                                    id="checkout-telefono-prefijo"
+                                    class="checkout-form__input checkout-form__input--prefijo"
+                                    placeholder="Ej: 0424"
+                                    maxlength="4"
+                                    pattern="\d{4}"
+                                    required
+                                >
+                                <input
+                                    type="tel"
+                                    id="checkout-telefono-num"
+                                    class="checkout-form__input"
+                                    placeholder="Ej: 1234567"
+                                    maxlength="7"
+                                    pattern="\d{7}"
+                                    required
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkout-form__row">
+                        <div class="checkout-form__col checkout-form__col--full">
+                            <label for="checkout-direccion" class="checkout-form__label">Dirección *</label>
+                            <input
+                                type="text"
+                                id="checkout-direccion"
+                                class="checkout-form__input"
+                                placeholder="Calle, número, urbanización..."
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="checkout-form__row">
+                        <div class="checkout-form__col checkout-form__col--full">
+                            <label for="checkout-estado" class="checkout-form__label">Estado *</label>
+                            <div class="estado-selector">
+                                <div class="estado-selector__input-wrapper">
+                                    <i class="fa-solid fa-map-pin estado-selector__icon"></i>
+                                    <input
+                                        type="text"
+                                        id="checkout-estado"
+                                        class="estado-selector__input"
+                                        placeholder="Escribe para buscar tu estado..."
+                                        autocomplete="off"
+                                        required
+                                    >
+                                    <button type="button" class="estado-selector__clear" id="estado-clear" style="display: none;">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+                                <div class="estado-selector__dropdown" id="estado-dropdown">
+                                    <div class="estado-selector__list" id="estado-list">
+                                        <div class="estado-selector__item" data-value="Distrito Capital">Distrito Capital</div>
+                                        <div class="estado-selector__item" data-value="Amazonas">Amazonas</div>
+                                        <div class="estado-selector__item" data-value="Anzoátegui">Anzoátegui</div>
+                                        <div class="estado-selector__item" data-value="Apure">Apure</div>
+                                        <div class="estado-selector__item" data-value="Aragua">Aragua</div>
+                                        <div class="estado-selector__item" data-value="Barinas">Barinas</div>
+                                        <div class="estado-selector__item" data-value="Bolívar">Bolívar</div>
+                                        <div class="estado-selector__item" data-value="Carabobo">Carabobo</div>
+                                        <div class="estado-selector__item" data-value="Cojedes">Cojedes</div>
+                                        <div class="estado-selector__item" data-value="Delta Amacuro">Delta Amacuro</div>
+                                        <div class="estado-selector__item" data-value="Falcón">Falcón</div>
+                                        <div class="estado-selector__item" data-value="Guárico">Guárico</div>
+                                        <div class="estado-selector__item" data-value="Lara">Lara</div>
+                                        <div class="estado-selector__item" data-value="Mérida">Mérida</div>
+                                        <div class="estado-selector__item" data-value="Miranda">Miranda</div>
+                                        <div class="estado-selector__item" data-value="Monagas">Monagas</div>
+                                        <div class="estado-selector__item" data-value="Nueva Esparta">Nueva Esparta</div>
+                                        <div class="estado-selector__item" data-value="Portuguesa">Portuguesa</div>
+                                        <div class="estado-selector__item" data-value="Sucre">Sucre</div>
+                                        <div class="estado-selector__item" data-value="Táchira">Táchira</div>
+                                        <div class="estado-selector__item" data-value="Trujillo">Trujillo</div>
+                                        <div class="estado-selector__item" data-value="Vargas">Vargas</div>
+                                        <div class="estado-selector__item" data-value="Yaracuy">Yaracuy</div>
+                                        <div class="estado-selector__item" data-value="Zulia">Zulia</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="checkout-form__section-title" style="margin-top: var(--space-lg);">
+                        <i class="fa-solid fa-car"></i> Información del Vehículo
+                    </h3>
+
+                    <div class="checkout-form__row">
+                        <div class="checkout-form__col checkout-form__col--full">
+                            <label for="checkout-modelo-vehiculo" class="checkout-form__label">
+                                <i class="fa-solid fa-circle-info"></i> Modelo/Año del vehículo (opcional)
+                            </label>
+                            <input
+                                type="text"
+                                id="checkout-modelo-vehiculo"
+                                class="checkout-form__input"
+                                placeholder="Ej: Toyota Corolla 2020, Ford Explorer 2018..."
+                            >
+                            <small class="checkout-form__help">Esto nos ayuda a verificar compatibilidad de las piezas</small>
+                        </div>
+                    </div>
+
+                    <h3 class="checkout-form__section-title" style="margin-top: var(--space-lg);">
+                        <i class="fa-solid fa-wallet"></i> Método de Pago
+                    </h3>
+
+                    <div class="checkout-form__payment-options">
+                        <label class="checkout-form__payment-option">
+                            <input type="radio" name="metodo-pago" value="transferencia" checked>
+                            <span class="checkout-form__payment-radio">
+                                <i class="fa-solid fa-building-columns"></i>
+                                <span>Transferencia Bancaria</span>
+                            </span>
+                        </label>
+                        <label class="checkout-form__payment-option">
+                            <input type="radio" name="metodo-pago" value="pago-movil">
+                            <span class="checkout-form__payment-radio">
+                                <i class="fa-solid fa-mobile-screen"></i>
+                                <span>Pago Móvil</span>
+                            </span>
+                        </label>
+                        <label class="checkout-form__payment-option">
+                            <input type="radio" name="metodo-pago" value="efectivo">
+                            <span class="checkout-form__payment-radio">
+                                <i class="fa-solid fa-money-bill-wave"></i>
+                                <span>Efectivo</span>
+                            </span>
+                        </label>
+                        <label class="checkout-form__payment-option">
+                            <input type="radio" name="metodo-pago" value="zelle">
+                            <span class="checkout-form__payment-radio">
+                                <i class="fa-solid fa-dollar-sign"></i>
+                                <span>Zelle</span>
+                            </span>
+                        </label>
+                        <label class="checkout-form__payment-option">
+                            <input type="radio" name="metodo-pago" value="otro">
+                            <span class="checkout-form__payment-radio">
+                                <i class="fa-solid fa-ellipsis"></i>
+                                <span>Otro</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <h3 class="checkout-form__section-title" id="despacho-title" style="margin-top: var(--space-lg); display: none;">
+                        <i class="fa-solid fa-truck"></i> Tipo de Despacho
+                    </h3>
+
+                    <div class="checkout-form__payment-options" id="despacho-options" style="display: none;">
+                        <label class="checkout-form__payment-option">
+                            <input type="radio" name="despacho" value="Retiro en Tienda">
+                            <span class="checkout-form__payment-radio">
+                                <i class="fa-solid fa-shop"></i>
+                                <span>Retiro en Tienda</span>
+                            </span>
+                        </label>
+                        <label class="checkout-form__payment-option">
+                            <input type="radio" name="despacho" value="Delivery" checked>
+                            <span class="checkout-form__payment-radio">
+                                <i class="fa-solid fa-truck"></i>
+                                <span>Delivery</span>
+                            </span>
+                        </label>
+                    </div>
+                    <input type="hidden" id="checkout-despacho" value="Delivery">
+
+                    <div class="checkout-form__row" style="margin-top: var(--space-md);">
+                        <div class="checkout-form__col checkout-form__col--full">
+                            <label for="checkout-notas" class="checkout-form__label">Notas adicionales (opcional)</label>
+                            <textarea
+                                id="checkout-notas"
+                                class="checkout-form__input checkout-form__textarea"
+                                placeholder="Alguna observación o comentario sobre tu pedido..."
+                                rows="3"
+                            ></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Botón para pasar al siguiente paso -->
+                    <div class="checkout-form__actions" style="margin-top: var(--space-lg); justify-content: flex-end;">
+                        <button type="button" class="btn btn--primary btn--lg" id="checkout-next-step">
+                            <i class="fa-solid fa-arrow-right"></i> Continuar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Confirmación -->
+                <div class="checkout-form__section" id="checkout-step-2" style="display: none;">
+                    <h3 class="checkout-form__section-title">
+                        <i class="fa-solid fa-clipboard-check"></i> Resumen del Pedido
+                    </h3>
+
+                    <div class="checkout-summary" id="checkout-summary">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+
+                    <div class="checkout-form__actions">
+                        <button type="button" class="btn btn--outline" id="checkout-back">
+                            <i class="fa-solid fa-arrow-left"></i> Volver
+                        </button>
+                        <button type="submit" class="btn btn--whatsapp btn--lg">
+                            <i class="fa-brands fa-whatsapp"></i> Enviar Pedido por WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/whatsapp.js"></script>
+<script src="/static/js/carrito-page.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('Scripts del carrito cargados');
+        console.log('checkout-btn:', document.getElementById('checkout-btn'));
+        console.log('checkout-next-step:', document.getElementById('checkout-next-step'));
+        console.log('checkout-summary:', document.getElementById('checkout-summary'));
+        console.log('checkout-step-2:', document.getElementById('checkout-step-2'));
+
+        // Auto-focus al siguiente input cuando se completan 4 dígitos del prefijo
+        const telefonoPrefijo = document.getElementById('checkout-telefono-prefijo');
+        const telefonoNum = document.getElementById('checkout-telefono-num');
+        
+        telefonoPrefijo?.addEventListener('input', (e) => {
+            if (e.target.value.length === 4) {
+                telefonoNum?.focus();
+            }
+        });
+    });
+
+    // Estado Selector
+    (function() {
+        const input = document.getElementById('checkout-estado');
+        const dropdown = document.getElementById('estado-dropdown');
+        const items = document.querySelectorAll('.estado-selector__item');
+        const clearBtn = document.getElementById('estado-clear');
+
+        function toggleDropdown(show) {
+            if (show) {
+                dropdown.classList.add('estado-selector__dropdown--open');
+                filterItems('');
+            } else {
+                dropdown.classList.remove('estado-selector__dropdown--open');
+            }
+        }
+
+        function filterItems(query) {
+            const lower = query.toLowerCase();
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(lower)) {
+                    item.classList.remove('estado-selector__item--hidden');
+                } else {
+                    item.classList.add('estado-selector__item--hidden');
+                }
+            });
+        }
+
+        function selectItem(value) {
+            input.value = value;
+            toggleDropdown(false);
+            clearBtn.style.display = value ? 'flex' : 'none';
+            
+            // Actualizar selector de despacho según el estado
+            const despachoTitle = document.getElementById('despacho-title');
+            const despachoOptions = document.getElementById('despacho-options');
+            const despachoInput = document.getElementById('checkout-despacho');
+            if (value && value.toLowerCase() === 'aragua') {
+                despachoTitle.style.display = 'block';
+                despachoOptions.style.display = 'grid';
+            } else {
+                despachoTitle.style.display = 'none';
+                despachoOptions.style.display = 'none';
+                if (despachoInput) despachoInput.value = 'Delivery';
+            }
+        }
+
+        input.addEventListener('focus', () => toggleDropdown(true));
+        
+        input.addEventListener('input', (e) => {
+            filterItems(e.target.value);
+            clearBtn.style.display = input.value ? 'flex' : 'none';
+        });
+
+        clearBtn.addEventListener('click', () => {
+            input.value = '';
+            clearBtn.style.display = 'none';
+            filterItems('');
+            input.focus();
+        });
+
+        items.forEach(item => {
+            item.addEventListener('click', () => selectItem(item.dataset.value));
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.estado-selector')) {
+                toggleDropdown(false);
+            }
+        });
+    })();
+
+    // Listener para cambio de despacho
+    document.querySelectorAll('input[name="despacho"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            document.getElementById('checkout-despacho').value = e.target.value;
+        });
+    });
+
+    // Listener para mostrar/ocultar despacho según estado
+    const estadoInput = document.getElementById('checkout-estado');
+    estadoInput?.addEventListener('change', (e) => {
+        const estado = e.target.value.trim();
+        const despachoTitle = document.getElementById('despacho-title');
+        const despachoOptions = document.getElementById('despacho-options');
+        const despachoInput = document.getElementById('checkout-despacho');
+        if (estado.toLowerCase() === 'aragua') {
+            if (despachoTitle) despachoTitle.style.display = 'block';
+            despachoOptions.style.display = 'grid';
+        } else {
+            if (despachoTitle) despachoTitle.style.display = 'none';
+            despachoOptions.style.display = 'none';
+            if (despachoInput) despachoInput.value = 'Delivery';
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,68 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Entorno
+.env
+.env.local
+.env.*.local
+*.env
+
+# Base de datos
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache y tests
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Imágenes productos (generadas dinámicamente)
+static/img/productos/*
+!static/img/productos/.gitkeep
+
+# Logs y outputs de procesamiento
+*.log
+procesamiento_productos/output/**/*.log
+procesamiento_productos/output/**/*.txt
+procesamiento_productos/output/**/*.csv
+procesamiento_productos/*.xlsx
+procesamiento_productos/output/**/*.webp
+procesamiento_productos/output/checkpoint.txt
+!procesamiento_productos/output/.gitkeep
+!procesamiento_productos/output/**/.gitkeep
+
+# Imágenes de marca (logos y banners)
+static/img/logo/*
+static/img/banners/*
+!static/img/logo/.gitkeep
+!static/img/banners/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# opencode config (contiene credenciales)
+opencode.json
+
+# Scripts y procesamiento
+procesamiento_productos/
+scripts/

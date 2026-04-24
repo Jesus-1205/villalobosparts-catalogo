@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+Disallow: /docs
+Disallow: /redoc
+Disallow: /openapi.json
+
+Disallow: /static/css/
+Disallow: /static/js/
+
+Allow: /static/img/

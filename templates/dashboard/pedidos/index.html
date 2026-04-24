@@ -1,0 +1,357 @@
+{% extends "dashboard/base.html" %}
+
+{% block header_title %}Pedidos{% endblock %}
+{% block page_title %}Pedidos{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div class="search-box search-box--compact">
+        <input type="text" id="pedido-search" placeholder="Buscar por ID, nombre o cédula..." value="{{ filtros.busqueda }}">
+        <button type="button" class="search-btn" onclick="updateFilters()" title="Buscar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+    </div>
+    
+    <div class="filter-group">
+        <select id="filter-concretada" class="filter-select">
+            <option value="">Todos los estados</option>
+            <option value="true" {% if filtros.concretada == 'true' %}selected{% endif %}>Concretados</option>
+            <option value="false" {% if filtros.concretada == 'false' %}selected{% endif %}>Pendientes</option>
+        </select>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Orden</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="pedidos-table-body">
+                {% for pedido in items %}
+                <tr>
+                    <td><strong class="product-sku">{{ pedido.order_id }}</strong></td>
+                    <td>{{ pedido.created_at }}</td>
+                    <td>
+                        <div style="display: flex; flex-direction: column;">
+                            <span class="product-name">{{ pedido.cliente }}</span>
+                            <span class="product-sku">{{ pedido.cedula }}</span>
+                        </div>
+                    </td>
+                    <td><span class="price">${{ pedido.total|number_format }}</span></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label class="toggle" data-endpoint="/pedidos/{{ pedido.id }}" data-field="concretada">
+                                <input type="checkbox" {% if pedido.concretada %}checked{% endif %} onchange="updateStatusBadge(this)">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="status-badge {% if pedido.concretada %}available{% else %}unavailable{% endif %}" style="border: none; padding: 0;">
+                                {% if pedido.concretada %}Concretada{% else %}Pendiente{% endif %}
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="action-btn" onclick='verDetallePedido({{ pedido|tojson }})' title="Ver detalles">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                            <button class="action-btn delete" onclick="eliminarPedido({{ pedido.id }})" title="Eliminar">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px;">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                            <h3>No se encontraron pedidos</h3>
+                            <p>Intenta ajustar los filtros de búsqueda.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if pagination.paginas_totales > 1 %}
+    <div class="pagination-wrapper">
+        <div class="pagination-info">
+            Mostrando <strong>{{ items|length }}</strong> de <strong>{{ pagination.total }}</strong> pedidos
+        </div>
+        <div class="pagination">
+            <a href="?pagina={{ pagination.pagina - 1 }}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}{% if filtros.concretada %}&concretada={{ filtros.concretada }}{% endif %}" 
+               class="pagination-btn {% if not pagination.tiene_anterior %}disabled{% endif %}">
+                <i class="fa-solid fa-chevron-left"></i>
+            </a>
+            
+            {% for p in range(1, pagination.paginas_totales + 1) %}
+            <a href="?pagina={{ p }}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}{% if filtros.concretada %}&concretada={{ filtros.concretada }}{% endif %}" 
+               class="pagination-btn {% if p == pagination.pagina %}current{% endif %}">
+                {{ p }}
+            </a>
+            {% endfor %}
+
+            <a href="?pagina={{ pagination.pagina + 1 }}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}{% if filtros.concretada %}&concretada={{ filtros.concretada }}{% endif %}" 
+               class="pagination-btn {% if not pagination.tiene_siguiente %}disabled{% endif %}">
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div id="modal-pedido" class="modal-overlay">
+    <div class="modal" style="max-width: 900px;">
+        <div class="modal-header">
+            <h3 class="modal-title">Detalle de Pedido #<span id="det-order-id"></span></h3>
+            <button class="modal-close" onclick="closeModal('modal-pedido')">&times;</button>
+        </div>
+        <div class="modal-body" id="det-content">
+            <div class="form-grid" style="margin-bottom: 24px;">
+                <div class="form-group">
+                    <label class="form-label">Cliente</label>
+                    <p id="det-cliente" style="font-weight: 600; font-size: 16px;"></p>
+                    <p id="det-documento" class="product-sku"></p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contacto</label>
+                    <p id="det-telefono"></p>
+                    <p id="det-ubicacion"></p>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h4 class="form-section-title">Productos</h4>
+                <div class="table-container">
+                    <table style="font-size: 13px;">
+                        <thead>
+                            <tr>
+                                <th>Pieza</th>
+                                <th>N° Parte</th>
+                                <th>Precio</th>
+                                <th>Cant.</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="det-productos-body">
+                            <!-- Se llena por JS -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4" style="text-align: right; font-weight: 700; padding: 12px;">TOTAL:</td>
+                                <td style="font-weight: 700; font-size: 16px; color: var(--primary); padding: 12px;" id="det-total"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div class="form-grid" style="margin-top: 24px;">
+                <div class="form-group">
+                    <label class="form-label">Método de Pago</label>
+                    <span class="category-tag" id="det-pago"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Despacho</label>
+                    <span class="category-tag" id="det-despacho"></span>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 20px;">
+                <label class="form-label">Vehículo</label>
+                <p id="det-vehiculo"></p>
+            </div>
+
+            <div class="form-group" id="det-notas-container" style="margin-top: 20px;">
+                <label class="form-label">Notas</label>
+                <p id="det-notas" style="font-style: italic; color: var(--text-secondary);"></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('modal-pedido')">Cerrar</button>
+            <button class="btn btn-primary" id="btn-whatsapp-cliente" onclick="">
+                <i class="fa-brands fa-whatsapp"></i> Contactar Cliente
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Estilos adicionales para el toggle de pedidos */
+.toggle {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 20px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--success);
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+.search-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--primary);
+    color: white;
+    border: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.search-btn:hover {
+    background: var(--primary-light);
+    transform: translateY(-50%) scale(1.05);
+}
+
+.search-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.search-box--compact input {
+    padding-left: 18px !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Hacer global para el botón de búsqueda
+const updateFilters = () => {
+    const searchInput = document.getElementById('pedido-search');
+    const filterSelect = document.getElementById('filter-concretada');
+    const busqueda = searchInput.value;
+    const concretada = filterSelect.value;
+    window.location.href = `?busqueda=${busqueda}&concretada=${concretada}`;
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Búsqueda y filtros
+    const searchInput = document.getElementById('pedido-search');
+    const filterSelect = document.getElementById('filter-concretada');
+
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') updateFilters();
+    });
+
+    filterSelect.addEventListener('change', updateFilters);
+});
+
+function verDetallePedido(data) {
+    try {
+        document.getElementById('det-order-id').textContent = data.order_id;
+        document.getElementById('det-cliente').textContent = `${data.nombre_cliente} ${data.apellido_cliente}`;
+        document.getElementById('det-documento').textContent = `C.I./RIF: ${data.cedula}`;
+        document.getElementById('det-telefono').textContent = data.telefono;
+        document.getElementById('det-ubicacion').textContent = `${data.estado} - ${data.direccion}`;
+        document.getElementById('det-pago').textContent = data.metodo_pago;
+        document.getElementById('det-despacho').textContent = data.despacho;
+        document.getElementById('det-total').textContent = `$${data.total.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+        document.getElementById('det-vehiculo').textContent = data.modelo_vehiculo || 'No especificado';
+        
+        if (data.notas) {
+            document.getElementById('det-notas-container').style.display = 'block';
+            document.getElementById('det-notas').textContent = data.notas;
+        } else {
+            document.getElementById('det-notas-container').style.display = 'none';
+        }
+
+        // Tabla de productos
+        const tbody = document.getElementById('det-productos-body');
+        tbody.innerHTML = '';
+        data.productos.forEach(p => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${p.nombre}</strong></td>
+                <td><span class="product-sku">${p.numero_parte}</span></td>
+                <td>$${parseFloat(p.precio).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                <td>${p.cantidad}</td>
+                <td style="font-weight: 600;">$${(p.precio * p.cantidad).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // WhatsApp button
+        const whatsappBtn = document.getElementById('btn-whatsapp-cliente');
+        const phone = data.telefono.replace(/\D/g, '');
+        const message = encodeURIComponent(`Hola ${data.nombre_cliente}, te escribimos de {{ company_name }} respecto a tu pedido #${data.order_id}.`);
+        whatsappBtn.onclick = () => window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+
+        openModal('modal-pedido');
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+async function eliminarPedido(id) {
+    if (await dashboard.confirmDelete(`/pedidos/${id}`, '¿Estás seguro de que deseas eliminar este pedido?')) {
+        location.reload();
+    }
+}
+
+function updateStatusBadge(input) {
+    const badge = input.closest('td').querySelector('.status-badge');
+    if (input.checked) {
+        badge.textContent = 'Concretada';
+        badge.classList.remove('unavailable');
+        badge.classList.add('available');
+    } else {
+        badge.textContent = 'Pendiente';
+        badge.classList.remove('available');
+        badge.classList.add('unavailable');
+    }
+}
+</script>
+{% endblock %}

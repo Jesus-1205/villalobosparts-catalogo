@@ -1,0 +1,12 @@
+{
+  "name": "VillalobosParts",
+  "short_name": "VP Parts",
+  "description": "Catálogo de autopartes Motorcraft originales",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A1E3F",
+  "theme_color": "#0A1E3F",
+  "icons": [
+    { "src": "/static/img/logo/logo.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

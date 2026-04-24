@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Página no encontrada{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="container">
+        <div class="error-page__content">
+            <div class="error-page__icon">
+                <i class="fa-solid fa-road-barrier"></i>
+            </div>
+            <h1 class="error-page__code">404</h1>
+            <h2 class="error-page__title">Página no encontrada</h2>
+            <p class="error-page__text">
+                Lo sentimos, la página que buscas no existe o fue movida.
+                Puede que el producto haya sido actualizado.
+            </p>
+            <div class="error-page__actions">
+                <a href="/" class="btn btn--primary btn--lg">
+                    <i class="fa-solid fa-house"></i> Ir al Inicio
+                </a>
+                <a href="/catalogo" class="btn btn--outline btn--lg">
+                    <i class="fa-solid fa-boxes-stacked"></i> Ver Catálogo
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block title %}Autopartes Motorcraft Originales{% endblock %}
+{% block meta_description %}{{ company_name }} - Tu proveedor de autopartes Motorcraft originales para vehículos Ford. Aceites, filtros, frenos y más. Compra fácil por WhatsApp.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/home.css">
+{% endblock %}
+
+{% block content %}
+
+<!-- Layout principal con Grid Areas -->
+<div class="home-grid">
+    
+    
+    <section class="hero-section">
+        <div class="hero">
+            <div class="hero__overlay"></div>
+            <div class="container">
+                <div class="hero__content">
+                    <!-- Columna izquierda: texto -->
+                    <div class="hero__main-col">
+                        <h1 class="hero__title">
+                            Autopartes <span class="hero__highlight">Motorcraft</span> Originales
+                        </h1>
+                        <p class="hero__subtitle">
+                            Más de 600 productos para tu vehículo Ford y Lincoln.
+                            Calidad de equipo original con asesoría personalizada.
+                        </p>
+                        
+                        <!-- Badges de confianza -->
+                        <div class="hero__badges">
+                            <span class="hero__badge">
+                                <i class="fa-solid fa-award"></i> 100% Originales
+                            </span>
+                            <span class="hero__badge">
+                                <i class="fa-solid fa-truck-fast"></i> Envío Nacional
+                            </span>
+                            <span class="hero__badge">
+                                <i class="fa-solid fa-headset"></i> Asesoría Experta
+                            </span>
+                        </div>
+                        
+                        <!-- Row inferior: Marcas + Stats -->
+                        <div class="hero__info-row">
+                            <div class="hero__brands">
+                                <div class="hero__brand-logos">
+                                    <img src="/static/img/banners/ford-logo.svg" alt="Ford" class="hero__brand-logo" onerror="this.style.display='none'">
+                                    <img src="/static/img/banners/motorcraft-logo.svg" alt="Motorcraft" class="hero__brand-logo" onerror="this.style.display='none'">
+                                </div>
+                            </div>
+                            <div class="hero__stats">
+                                <div class="hero__stat">
+                                    <span class="hero__stat-number">600+</span>
+                                    <span class="hero__stat-label">Productos</span>
+                                </div>
+                                <div class="hero__stat">
+                                    <span class="hero__stat-number">15+</span>
+                                    <span class="hero__stat-label">Años</span>
+                                </div>
+                                <div class="hero__stat">
+                                    <span class="hero__stat-number">100%</span>
+                                    <span class="hero__stat-label">Garantía</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Columna derecha: búsqueda y acciones -->
+                    <div class="hero__right-col">
+                        <div class="hero__search">
+                            <form class="hero-search-bar" action="/catalogo" method="get">
+                                <input type="text" name="busqueda" class="hero-search-bar__input" id="hero-search-input" placeholder="¿Qué pieza necesitas? Busca por nombre o número de parte...">
+                                <button type="submit" class="hero-search-bar__btn">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </button>
+                            </form>
+                            <div class="hero-search-autocomplete" id="hero-search-autocomplete"></div>
+                        </div>
+                        <div class="hero__actions">
+                            <a href="/catalogo" class="btn btn--primary btn--lg">
+                                <i class="fa-solid fa-boxes-stacked"></i> Ver Catálogo Completo
+                            </a>
+                            <a href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noopener" class="btn btn--whatsapp btn--lg">
+                                <i class="fa-brands fa-whatsapp"></i> Contactar Asesor
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <section class="trust-section">
+        <div class="trust-bar">
+            <div class="container">
+                <div class="trust-bar__grid">
+                    <div class="trust-bar__item">
+                        <div class="trust-bar__icon">
+                            <i class="fa-solid fa-award"></i>
+                        </div>
+                        <div class="trust-bar__text">
+                            <strong>100% Originales</strong>
+                            <span>Productos Motorcraft genuinos</span>
+                        </div>
+                    </div>
+                    <div class="trust-bar__item">
+                        <div class="trust-bar__icon">
+                            <i class="fa-solid fa-truck-fast"></i>
+                        </div>
+                        <div class="trust-bar__text">
+                            <strong>Envío Nacional</strong>
+                            <span>A toda Venezuela</span>
+                        </div>
+                    </div>
+                    <div class="trust-bar__item">
+                        <div class="trust-bar__icon">
+                            <i class="fa-solid fa-headset"></i>
+                        </div>
+                        <div class="trust-bar__text">
+                            <strong>Asesoría Experta</strong>
+                            <span>Te ayudamos a encontrar tu pieza</span>
+                        </div>
+                    </div>
+                    <div class="trust-bar__item">
+                        <div class="trust-bar__icon">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </div>
+                        <div class="trust-bar__text">
+                            <strong>Compra Fácil</strong>
+                            <span>Pide directo por WhatsApp</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <section class="categories-section">
+        <div class="section">
+            <div class="container">
+                <div class="section__header">
+                    <h2 class="section__title">Explora por Categoría</h2>
+                    <p class="section__subtitle">Encuentra rápidamente las autopartes que necesitas</p>
+                </div>
+
+                <div class="categories-grid" id="categories-grid">
+                    {% for cat in categorias[:10] %}
+                    <a href="/categoria/{{ cat.slug }}" class="category-card">
+                        <div class="category-card__icon">
+                            <i class="fa-solid {{ cat.icono or 'fa-box' }}"></i>
+                        </div>
+                        <h3 class="category-card__title">{{ cat.nombre }}</h3>
+                        <span class="category-card__count">{{ cat.total_productos }} productos</span>
+                    </a>
+                    {% endfor %}
+                    {% for cat in categorias[10:] %}
+                    <a href="/categoria/{{ cat.slug }}" class="category-card category-card--hidden" style="display: none;">
+                        <div class="category-card__icon">
+                            <i class="fa-solid {{ cat.icono or 'fa-box' }}"></i>
+                        </div>
+                        <h3 class="category-card__title">{{ cat.nombre }}</h3>
+                        <span class="category-card__count">{{ cat.total_productos }} productos</span>
+                    </a>
+                    {% endfor %}
+                </div>
+                
+                {% if categorias|length > 10 %}
+                <div class="categories-more">
+                    <button class="btn btn--outline" id="categories-toggle-btn" onclick="toggleMoreCategories()">
+                        Ver más categorías <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    
+    <section class="featured-section">
+        <div class="section">
+            <div class="container">
+                <div class="section__header">
+                    <h2 class="section__title">Productos Destacados</h2>
+                    <p class="section__subtitle">Los más buscados por nuestros clientes</p>
+                </div>
+
+                <div class="products-grid">
+                    {% for producto in destacados %}
+                    <article class="product-card">
+                        <a href="/producto/{{ producto.numero_parte }}" class="product-card__image-link">
+                            <div class="product-card__image-wrapper">
+                                <img
+                                    src="{{ producto.imagen_url or '/static/img/productos/placeholder.svg' }}"
+                                    alt="{{ producto.nombre }}"
+                                    class="product-card__image"
+                                    loading="lazy"
+                                    onerror="this.src='/static/img/productos/placeholder.svg'"
+                                >
+                                <span class="product-card__badge">Destacado</span>
+                            </div>
+                        </a>
+                        <div class="product-card__info">
+                            {% if producto.categoria_nombre %}
+                            <span class="product-card__category">{{ producto.categoria_nombre }}</span>
+                            {% endif %}
+                            <a href="/producto/{{ producto.numero_parte }}" class="product-card__title-link">
+                                <h3 class="product-card__title">{{ producto.nombre }}</h3>
+                            </a>
+                            <p class="product-card__part-number">
+                                <i class="fa-solid fa-barcode"></i> {{ producto.numero_parte }}
+                            </p>
+                            <div class="product-card__bottom">
+                                <p class="product-card__price">${{ "{:.2f}".format(producto.precio) }}</p>
+                                <button
+                                    class="product-card__add-btn"
+                                    onclick="agregarAlCarrito({
+                                        numero_parte: '{{ producto.numero_parte }}',
+                                        nombre: '{{ producto.nombre | replace("'", "\\'") }}',
+                                        precio: {{ producto.precio }},
+                                        imagen_url: '{{ producto.imagen_url or '/static/img/productos/placeholder.svg' }}'
+                                    })"
+                                    title="Añadir al carrito"
+                                >
+                                    <i class="fa-solid fa-cart-plus"></i>
+                                    <span class="product-card__add-text">Añadir</span>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+
+                <div class="section__footer">
+                    <a href="/catalogo" class="btn btn--primary btn--lg">
+                        Ver Todos los Productos <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <section class="howto-section">
+        <div class="section">
+            <div class="container">
+                <div class="section__header">
+                    <h2 class="section__title">¿Cómo Comprar?</h2>
+                    <p class="section__subtitle">3 simples pasos para obtener tus autopartes</p>
+                </div>
+
+                <div class="how-to-grid">
+                    <div class="how-to-step">
+                        <div class="how-to-step__number">1</div>
+                        <div class="how-to-step__icon">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </div>
+                        <h3 class="how-to-step__title">Busca tu Producto</h3>
+                        <p class="how-to-step__text">
+                            Navega por nuestro catálogo, filtra por categoría o busca por número de parte.
+                        </p>
+                    </div>
+                    <div class="how-to-step__arrow">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                    <div class="how-to-step">
+                        <div class="how-to-step__number">2</div>
+                        <div class="how-to-step__icon">
+                            <i class="fa-solid fa-cart-plus"></i>
+                        </div>
+                        <h3 class="how-to-step__title">Agrega al Carrito</h3>
+                        <p class="how-to-step__text">
+                            Selecciona los productos que necesitas y agrégalos a tu carrito.
+                            Ajusta las cantidades que desees.
+                        </p>
+                    </div>
+                    <div class="how-to-step__arrow">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                    <div class="how-to-step">
+                        <div class="how-to-step__number">3</div>
+                        <div class="how-to-step__icon">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </div>
+                        <h3 class="how-to-step__title">Envía por WhatsApp</h3>
+                        <p class="how-to-step__text">
+                            Con un clic envía tu pedido a nuestro asesor de ventas por WhatsApp.
+                            Te confirmamos disponibilidad y opciones de envío.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-box">
+                <div class="cta-box__content">
+                    <h2 class="cta-box__title">¿No encuentras la pieza que buscas?</h2>
+                    <p class="cta-box__text">
+                        Nuestros asesores pueden ayudarte a encontrar cualquier autoparte Motorcraft.
+                        Escríbenos y la pieza que necesitas.
+                    </p>
+                </div>
+                <a href="https://wa.me/{{ whatsapp_number }}?text=Hola%2C%20necesito%20ayuda%20para%20encontrar%20una%20autoparte%20para%20mi%20veh%C3%ADculo." target="_blank" rel="noopener" class="btn btn--whatsapp btn--lg">
+                    <i class="fa-brands fa-whatsapp"></i> Hablar con un Asesor
+                </a>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+let categoriesExpanded = false;
+
+function toggleMoreCategories() {
+    const allCards = document.querySelectorAll('.category-card');
+    const btn = document.getElementById('categories-toggle-btn');
+    
+    categoriesExpanded = !categoriesExpanded;
+    
+    allCards.forEach((card, index) => {
+        if (index >= 10) {
+            card.style.display = categoriesExpanded ? '' : 'none';
+        }
+    });
+    
+    if (categoriesExpanded) {
+        btn.classList.add('active');
+        btn.innerHTML = 'Ver menos categorías <i class="fa-solid fa-chevron-up"></i>';
+    } else {
+        btn.classList.remove('active');
+        btn.innerHTML = 'Ver más categorías <i class="fa-solid fa-chevron-down"></i>';
+    }
+}
+</script>
+
+{% endblock %}

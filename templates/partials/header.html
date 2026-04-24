@@ -1,0 +1,108 @@
+<div class="top-bar">
+    <div class="container top-bar__inner">
+        <div class="top-bar__left">
+            <span class="top-bar__item">
+                <i class="fa-solid fa-clock"></i> Lun - Vie: 8:00 AM - 4:30 PM
+            </span>
+            <span class="top-bar__item top-bar__item--hide-mobile">
+                <i class="fa-solid fa-phone"></i>
+                <a href="tel:{{ whatsapp_number }}">58 {{ whatsapp_number | replace('+', '') }}</a>
+            </span>
+        </div>
+        <div class="top-bar__right">
+            <a href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noopener" class="top-bar__item top-bar__whatsapp">
+                <i class="fa-brands fa-whatsapp"></i> Escríbenos por WhatsApp
+            </a>
+        </div>
+    </div>
+</div>
+
+<header class="header" id="main-header">
+    <div class="container header__inner">
+
+        <a href="/" class="header__logo">
+            <img src="/static/img/logo/logo.svg" alt="{{ app_name }} - Autopartes Motorcraft" class="header__logo-img">
+            <div class="header__logo-text">
+                <span class="header__brand">{{ app_name }}</span>
+                <span class="header__tagline">Autopartes Motorcraft</span>
+            </div>
+        </a>
+
+        <div class="header__search" id="header-search">
+            <form class="search-bar" id="search-form" action="/catalogo" method="get">
+                <input
+                    type="text"
+                    id="search-input"
+                    name="busqueda"
+                    class="search-bar__input"
+                    placeholder="Buscar por nombre o número de parte..."
+                    autocomplete="off"
+                >
+                <button type="submit" class="search-bar__btn" aria-label="Buscar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </form>
+            <div class="search-autocomplete" id="search-autocomplete"></div>
+        </div>
+
+        <div class="header__actions">
+            <a href="/carrito" class="header__cart" id="header-cart-btn">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span class="header__cart-badge" id="cart-badge">0</span>
+            </a>
+
+            <!-- Botón menú hamburguesa (móvil) -->
+            <button class="header__menu-toggle" id="menu-toggle" aria-label="Abrir menú">
+                <span class="hamburger">
+                    <span class="hamburger__line"></span>
+                    <span class="hamburger__line"></span>
+                    <span class="hamburger__line"></span>
+                </span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navegación principal -->
+    <nav class="nav" id="main-nav">
+        <div class="container">
+            <ul class="nav__list">
+                <li class="nav__item">
+                    <a href="/" class="nav__link {% if request.url.path == '/' %}nav__link--active{% endif %}">
+                        <i class="fa-solid fa-house"></i> Inicio
+                    </a>
+                </li>
+                <li class="nav__item">
+                    <a href="/catalogo" class="nav__link {% if '/catalogo' in request.url.path %}nav__link--active{% endif %}">
+                        <i class="fa-solid fa-boxes-stacked"></i> Catálogo
+                    </a>
+                </li>
+                <li class="nav__item">
+                    <a href="/carrito" class="nav__link {% if '/carrito' in request.url.path %}nav__link--active{% endif %}">
+                        <i class="fa-solid fa-cart-shopping"></i> Carrito
+                        <span class="nav__cart-count" id="nav-cart-count"></span>
+                    </a>
+                </li>
+                <li class="nav__item nav__item--whatsapp">
+                    <a href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noopener" class="nav__link nav__link--whatsapp">
+                        <i class="fa-brands fa-whatsapp"></i> Contacto
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Búsqueda móvil -->
+            <div class="nav__mobile-search">
+                <form class="search-bar" action="/catalogo" method="get">
+                    <input
+                        type="text"
+                        name="busqueda"
+                        class="search-bar__input"
+                        placeholder="Buscar producto..."
+                    >
+                    <button type="submit" class="search-bar__btn" aria-label="Buscar">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+</header>

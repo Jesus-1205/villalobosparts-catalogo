@@ -1,0 +1,97 @@
+{% extends "dashboard/base.html" %}
+
+{% block header_title %}Gestión de Categorías{% endblock %}
+
+{% block header_actions %}
+<a href="/dashboard/categorias/nueva" class="btn btn-accent">
+    <i class="fa-solid fa-plus"></i>
+    Nueva Categoría
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    {% if items %}
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Slug</th>
+                    <th>Icono</th>
+                    <th>Productos</th>
+                    <th>Estado</th>
+                    <th>Orden</th>
+                    <th style="width: 120px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td><strong>{{ item.nombre }}</strong></td>
+                    <td><code>{{ item.slug }}</code></td>
+                    <td><i class="fa-solid {{ item.icono }}"></i></td>
+                    <td>{{ item.total_productos }}</td>
+                    <td>
+                        {% if item.activa %}
+                        <span class="status-badge available">Activa</span>
+                        {% else %}
+                        <span class="status-badge unavailable">Inactiva</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.orden }}</td>
+                    <td>
+                        <div class="actions-cell">
+                            <a href="/dashboard/categorias/{{ item.id }}/editar" class="action-btn" title="Editar">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                            <button 
+                                class="action-btn delete" 
+                                title="Eliminar" 
+                                onclick="eliminarCategoria({{ item.id }}, '{{ item.nombre }}', {{ item.total_productos }})"
+                                {% if item.total_productos > 0 %}disabled style="opacity: 0.5; cursor: not-allowed;"{% endif %}
+                            >
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-tags"></i>
+        <h3>No hay categorías</h3>
+        <p>Crea la primera categoría para organizar tus productos.</p>
+        <a href="/dashboard/categorias/nueva" class="btn btn-accent" style="margin-top: 16px;">
+            <i class="fa-solid fa-plus"></i>
+            Crear categoría
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function eliminarCategoria(id, nombre, totalProductos) {
+    if (totalProductos > 0) {
+        showToast('No se puede eliminar: hay ' + totalProductos + ' productos asociados', 'error');
+        return;
+    }
+    
+    if (confirm('¿Eliminar la categoría "' + nombre + '"?')) {
+        try {
+            const res = await fetch(API_BASE + '/categorias/' + id, { method: 'DELETE' });
+            if (!res.ok) throw new Error('Error al eliminar');
+            showToast('Categoría eliminada');
+            setTimeout(() => window.location.reload(), 1000);
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+}
+</script>
+{% endblock %}

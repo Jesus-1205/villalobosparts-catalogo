@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>{% block title %}Catálogo de Autopartes Motorcraft{% endblock %} | {{ app_name }}</title>
+    <meta name="description" content="{% block meta_description %}Catálogo de autopartes Motorcraft originales. Aceites, filtros, frenos y más para vehículos Ford. Compra fácil por WhatsApp.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}autopartes, motorcraft, ford, aceites, filtros, frenos, refacciones, partes originales, lincoln{% endblock %}">
+    <meta name="author" content="{{ app_name }}">
+    <meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
+
+    <link rel="canonical" href="{% block canonical_url %}{{ base_url }}{{ request.url.path }}{% endblock %}">
+
+    <meta property="og:site_name"   content="{{ app_name }}">
+    <meta property="og:type"        content="{% block og_type %}website{% endblock %}">
+    <meta property="og:locale"      content="es_MX">
+    <meta property="og:title"       content="{% block og_title %}{{ app_name }} - Autopartes Motorcraft{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Catálogo de autopartes Motorcraft originales para vehículos Ford y Lincoln.{% endblock %}">
+    <meta property="og:url"         content="{{ base_url }}{{ request.url.path }}">
+    <meta property="og:image"       content="{% block og_image %}{{ base_url }}/static/img/logo/logo.svg{% endblock %}">
+    <meta property="og:image:width"  content="1200">
+    <meta property="og:image:height" content="630">
+<meta property="og:image:alt"   content="{{ app_name }} - Autopartes Motorcraft">
+ 
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:title"       content="{% block twitter_title %}{{ app_name }} - Autopartes Motorcraft{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Catálogo de autopartes Motorcraft originales para vehículos Ford y Lincoln.{% endblock %}">
+    <meta name="twitter:image"       content="{% block twitter_image %}{{ base_url }}/static/img/logo/logo.svg{% endblock %}">
+
+    <link rel="icon" type="image/svg+xml" href="/static/img/logo/logo.svg">
+    <link rel="manifest" href="/static/site.webmanifest">
+    <meta name="theme-color" content="#0D2137">
+    <meta name="whatsapp-number" content="{{ whatsapp_number }}">
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "AutoPartsStore",
+        "name": "{{ app_name }}",
+        "description": "Distribuidor de autopartes Motorcraft originales para vehículos Ford y Lincoln en Venezuela.",
+        "url": "{{ base_url }}",
+        "logo": "{{ base_url }}/static/img/logo/logo.png",
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer service",
+            "availableLanguage": "Spanish"
+        },
+        "areaServed": "MX",
+        "currenciesAccepted": "USD",
+        "priceRange": "$$"
+    }
+    </script>
+
+    {% block schema_org %}{% endblock %}
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+
+
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ===== CSS GLOBAL ===== -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/header.css">
+    <link rel="stylesheet" href="/static/css/footer.css">
+    <link rel="stylesheet" href="/static/css/sidebar.css">
+
+
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar -->
+    {% include "partials/sidebar.html" %}
+
+    <!-- Header -->
+    {% include "partials/header.html" %}
+
+    <main id="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    {% include "partials/footer.html" %}
+
+    <a href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noopener" class="whatsapp-float" aria-label="Contactar por WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <button id="scroll-top-btn" class="scroll-top-btn" aria-label="Volver arriba">
+        <i class="fa-solid fa-chevron-up"></i>
+    </button>
+
+    <!-- Toast de notificaciones -->
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Variable global de WhatsApp para los scripts JS -->
+    <script>
+        const WHATSAPP_NUMBER = "{{ whatsapp_number }}";
+        const COMPANY_NAME = "{{ company_name }}";
+    </script>
+
+    <script src="/static/js/app.js" defer></script>
+    <script src="/static/js/carrito.js" defer></script>
+    <script src="/static/js/sidebar.js" defer></script>
+
+    <!-- JS específico de cada página -->
+    {% block extra_js %}{% endblock %}
+
+</body>
+</html>
